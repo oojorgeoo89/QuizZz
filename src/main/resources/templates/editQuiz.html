@@ -1,0 +1,76 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+
+	<title>QuizZz</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<link href="http://cdn.jsdelivr.net/webjars/bootstrap/3.3.1/css/bootstrap.min.css"
+          th:href="@{/webjars/bootstrap/3.3.1/css/bootstrap.min.css}" rel="stylesheet" media="screen"/>
+	
+	<link rel="stylesheet" th:href="@{/css/main.css}"
+		href="../../css/main.css" />
+
+</head>
+<body ng-app="editApp" th:attr="ng-init='listId='+${quizId}">
+
+	<nav class="navbar navbar-inverse">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="#">QuizZz</a>
+			</div>
+			<div id="navbar" class="collapse navbar-collapse">
+				<ul class="nav navbar-nav">
+					<li class="active"><a href="#">Home</a></li>
+					<li><a href="#about">About</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+	<div class="container">
+
+		<div class="starter-template">
+			<h1>Welcome to QuizZz!</h1>
+		</div>
+
+		<div ng-controller="EditCtrl"> 
+			
+			<form name="EditQuiz">
+				<label>Name: </label><input placeholder="Give your quiz a descriptive name..." ng-model="quizName" />
+				<br />
+				<label>Description: </label><input placeholder="Give your quiz a descriptive name..." ng-model="quizDescription" />
+				<br />
+				<input type="submit" value="save" ng-click="saveQuiz(quizName, quizDescription)" />
+			</form>
+			 
+			<table>
+				<thead>
+					<tr>
+						<th>Questions</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="question in questions">
+						<td><input placeholder="Question text..." ng-model="question.text"/></td>
+						<td><button ng-click="saveQuestion(question.id, question.text)">Save</button></td>
+						<td><button ng-click="deleteQuestion(question.id)">Delete</button></td>
+					</tr>
+					<tr>
+						<td><input placeholder="Question text..." ng-model="newQuestion"/></td>
+						<td><button ng-click="saveQuestion(0, newQuestion)">Save</button></td>
+					</tr>		
+				</tbody>
+			</table>
+			 
+		</div>
+	</div>
+
+
+<script src="http://cdn.jsdelivr.net/webjars/angularjs/1.3.8/angular.min.js"
+        th:src="@{/webjars/angularjs/1.3.8/angular.min.js}"></script>
+<script type="text/javascript" src="../js/editApp.js"
+        th:src="@{/js/editApp.js}"></script>
+</body>
+</html>

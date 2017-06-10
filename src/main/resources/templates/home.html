@@ -1,0 +1,66 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+
+	<title>QuizZz</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<link href="http://cdn.jsdelivr.net/webjars/bootstrap/3.3.1/css/bootstrap.min.css"
+          th:href="@{/webjars/bootstrap/3.3.1/css/bootstrap.min.css}" rel="stylesheet" media="screen"/>
+	
+	<link rel="stylesheet" th:href="@{/css/main.css}"
+		href="../../css/main.css" />
+
+</head>
+<body ng-app="homeApp">
+
+	<nav class="navbar navbar-inverse">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="#">QuizZz</a>
+			</div>
+			<div id="navbar" class="collapse navbar-collapse">
+				<ul class="nav navbar-nav">
+					<li class="active"><a href="#">Home</a></li>
+					<li><a href="#about">About</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+	<div class="container">
+
+		<div class="starter-template">
+			<h1>Welcome to QuizZz!</h1>
+		</div>
+
+		<div ng-controller="HomeCtrl">
+			<table>
+				<thead>
+					<tr>
+						<th>Quiz</th>
+						<th>Description</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+				
+					<tr ng-repeat="quiz in quizzes">
+						<td>{{quiz.name}}</td>
+						<td>{{quiz.description}}</td>
+						<td><a href="/editQuiz/{{quiz.id}}">Edit</a></td>
+					</tr>
+					 
+				</tbody>
+			</table>
+		</div>
+
+	</div>
+
+
+<script src="http://cdn.jsdelivr.net/webjars/angularjs/1.3.8/angular.min.js"
+        th:src="@{/webjars/angularjs/1.3.8/angular.min.js}"></script>
+<script type="text/javascript" src="../js/homeApp.js"
+        th:src="@{/js/homeApp.js}"></script>
+</body>
+</html>
