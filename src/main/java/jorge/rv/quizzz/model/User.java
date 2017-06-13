@@ -1,6 +1,5 @@
 package jorge.rv.quizzz.model;
 
-import java.util.Collection;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -16,17 +15,12 @@ import javax.persistence.Table;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "user")
-public class UserInfo implements UserDetails {
-
-	private static final long serialVersionUID = 1L;
+public class User {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -124,7 +118,7 @@ public class UserInfo implements UserDetails {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		UserInfo other = (UserInfo) obj;
+		User other = (User) obj;
 		if (active != other.active)
 			return false;
 		if (email == null) {
@@ -154,37 +148,5 @@ public class UserInfo implements UserDetails {
 			return false;
 		return true;
 	}
-
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return AuthorityUtils.createAuthorityList("ROLE_USER");
-	}
-
-	@Override
-	public String getUsername() {
-		return getEmail();
-	}
-
-	@Override
-	public boolean isAccountNonExpired() {
-		return true;
-	}
-
-	@Override
-	public boolean isAccountNonLocked() {
-		return true;
-	}
-
-	@Override
-	public boolean isCredentialsNonExpired() {
-		return true;
-	}
-
-	@Override
-	public boolean isEnabled() {
-		return true;
-	}
 	
-	
-
 }

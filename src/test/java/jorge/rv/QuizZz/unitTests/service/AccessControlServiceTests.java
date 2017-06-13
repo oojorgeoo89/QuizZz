@@ -5,9 +5,10 @@ import org.junit.Test;
 
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Answer;
+import jorge.rv.quizzz.model.AuthenticatedUser;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
-import jorge.rv.quizzz.model.UserInfo;
+import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.AccessControlService;
 import jorge.rv.quizzz.service.AccessControlServiceImpl;
 
@@ -15,8 +16,10 @@ public class AccessControlServiceTests {
 
 	AccessControlService service = new AccessControlServiceImpl();
 	
-	UserInfo user1 = new UserInfo();
-	UserInfo user2 = new UserInfo();
+	User internalUser1 = new User();
+	AuthenticatedUser user1 = new AuthenticatedUser(internalUser1);
+	User internalUser2 = new User();
+	AuthenticatedUser user2 = new AuthenticatedUser(internalUser2);
 	
 	Quiz quiz = new Quiz();
 	Question question = new Question();
@@ -24,10 +27,10 @@ public class AccessControlServiceTests {
 
 	@Before
 	public void before() {
-		user1.setId(1l);
-		user2.setId(2l);
+		internalUser1.setId(1l);
+		internalUser2.setId(2l);
 		
-		quiz.setCreatedBy(user1);
+		quiz.setCreatedBy(user1.getUser());
 		question.setQuiz(quiz);
 		answer.setQuestion(question);
 	}

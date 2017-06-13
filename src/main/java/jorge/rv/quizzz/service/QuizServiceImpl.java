@@ -12,7 +12,7 @@ import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
-import jorge.rv.quizzz.model.UserInfo;
+import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.repository.QuizRepository;
 
 @Service("QuizService")
@@ -29,7 +29,7 @@ public class QuizServiceImpl implements QuizService {
 	
 	@Override
 	@Transactional
-	public Quiz save(Quiz quiz, UserInfo user) {
+	public Quiz save(Quiz quiz, User user) {
 		quiz.setCreatedBy(user);
 		return quizRepository.save(quiz);
 	}
@@ -54,18 +54,19 @@ public class QuizServiceImpl implements QuizService {
 
 	@Override
 	@Transactional
-	public Quiz update(Long id, Quiz newQuiz, UserInfo user) throws UnauthorizedActionException, ResourceUnavailableException {
+	public Quiz update(Long id, Quiz newQuiz) throws UnauthorizedActionException, ResourceUnavailableException {
 		Quiz currentQuiz = find(id);
-		accessControlService.checkUserPriviledges(user, currentQuiz);
+		accessControlService.checkCurrentUserPriviledges(currentQuiz);
 		
 		mergeQuizzes(currentQuiz, newQuiz);
 		return quizRepository.save(currentQuiz);
 	}
 
+	@Override
 	@Transactional
-	public void delete(Long id, UserInfo user) throws ResourceUnavailableException, UnauthorizedActionException {
+	public void delete(Long id) throws ResourceUnavailableException, UnauthorizedActionException {
 		Quiz currentQuiz = find(id);
-		accessControlService.checkUserPriviledges(user, currentQuiz);
+		accessControlService.checkCurrentUserPriviledges(currentQuiz);
 		
 		quizRepository.delete(currentQuiz);
 	}

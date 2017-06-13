@@ -17,7 +17,7 @@ import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.exceptions.UserAlreadyExistsException;
 import jorge.rv.quizzz.model.Role;
 import jorge.rv.quizzz.model.Roles;
-import jorge.rv.quizzz.model.UserInfo;
+import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.repository.RoleRepository;
 import jorge.rv.quizzz.repository.UserRepository;
 import jorge.rv.quizzz.service.AccessControlService;
@@ -33,7 +33,7 @@ public class UserServiceTests {
 	RoleRepository roleRepository;
 	AccessControlService accessControlService;
 	
-	UserInfo user = new UserInfo();
+	User user = new User();
 	
 	@Before
 	public void before() {
@@ -52,7 +52,7 @@ public class UserServiceTests {
 		when(roleRepository.findByRole(Roles.USER.toString())).thenReturn(new Role());
 		when(userRepository.save(user)).thenReturn(user);
 		
-		UserInfo returned = service.saveUser(user);
+		User returned = service.saveUser(user);
 		
 		verify(userRepository, times(1)).save(user);
 		assertTrue(user.equals(returned));
@@ -70,7 +70,7 @@ public class UserServiceTests {
 	@Test
 	public void deleteUser() throws UnauthorizedActionException, ResourceUnavailableException {
 		when(userRepository.findOne(user.getId())).thenReturn(user);
-		service.delete(user.getId(), user);
+		service.delete(user.getId());
 		
 		verify(userRepository, times(1)).delete(user);;
 	}
@@ -79,15 +79,15 @@ public class UserServiceTests {
 	public void testDeleteUnexistentUser() throws QuizZzException {
 		when(userRepository.findOne(user.getId())).thenReturn(null);
 		
-		service.delete(user.getId(), user);
+		service.delete(user.getId());
 	}
 	
 	@Test(expected = UnauthorizedActionException.class)
 	public void testDeleteFromWrongUser() throws QuizZzException {
 		when(userRepository.findOne(user.getId())).thenReturn(user);
 		doThrow(new UnauthorizedActionException())
-			.when(accessControlService).checkUserPriviledges(user, user);
+			.when(accessControlService).checkCurrentUserPriviledges(user);
 		
-		service.delete(user.getId(), user);
+		service.delete(user.getId());
 	}
 }

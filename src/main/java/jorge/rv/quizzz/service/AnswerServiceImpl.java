@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Answer;
-import jorge.rv.quizzz.model.UserInfo;
 import jorge.rv.quizzz.repository.AnswerRepository;
 
 @Service("AnswerService")
@@ -36,17 +35,17 @@ public class AnswerServiceImpl implements AnswerService {
 	
 	@Override
 	@Transactional
-	public Answer save(Answer answer, UserInfo user) throws UnauthorizedActionException {
-		accessControlService.checkUserPriviledges(user, answer);
+	public Answer save(Answer answer) throws UnauthorizedActionException {
+		accessControlService.checkCurrentUserPriviledges(answer);
 		
 		return answerRepository.save(answer);
 	}
 
 	@Override
 	@Transactional
-	public Answer update(Long id, Answer newAnswer, UserInfo user) throws ResourceUnavailableException, UnauthorizedActionException {
+	public Answer update(Long id, Answer newAnswer) throws ResourceUnavailableException, UnauthorizedActionException {
 		Answer currentAnswer = find(id);
-		accessControlService.checkUserPriviledges(user, currentAnswer);
+		accessControlService.checkCurrentUserPriviledges(currentAnswer);
 		
 		mergeAnswers(currentAnswer, newAnswer); 
 		return answerRepository.save(currentAnswer);
@@ -54,9 +53,9 @@ public class AnswerServiceImpl implements AnswerService {
 
 	@Override
 	@Transactional
-	public void delete(Long id, UserInfo user) throws ResourceUnavailableException, UnauthorizedActionException {
+	public void delete(Long id) throws ResourceUnavailableException, UnauthorizedActionException {
 		Answer currentAnswer = find(id);
-		accessControlService.checkUserPriviledges(user, currentAnswer);
+		accessControlService.checkCurrentUserPriviledges(currentAnswer);
 		
 		answerRepository.delete(currentAnswer);
 	}

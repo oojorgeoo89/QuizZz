@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +20,6 @@ import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Answer;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
-import jorge.rv.quizzz.model.UserInfo;
 import jorge.rv.quizzz.service.QuestionService;
 import jorge.rv.quizzz.service.QuizService;
 
@@ -39,8 +37,7 @@ public class QuestionController {
 	
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> save(@AuthenticationPrincipal UserInfo user, 
-							@Valid Question question, 
+	public ResponseEntity<?> save(@Valid Question question, 
 							BindingResult result, 
 							@RequestParam Long quiz_id) {
 		
@@ -51,7 +48,7 @@ public class QuestionController {
 		try {
 			Quiz quiz = quizService.find(quiz_id);
 			question.setQuiz(quiz);
-			Question newQuestion =  questionService.save(question, user);
+			Question newQuestion =  questionService.save(question);
 			return ResponseEntity.status(HttpStatus.CREATED).body(newQuestion);
 		} catch (UnauthorizedActionException e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -73,8 +70,7 @@ public class QuestionController {
 	
 	@RequestMapping(value = "/{question_id}", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> update(@AuthenticationPrincipal UserInfo user, 
-							@PathVariable Long question_id, 
+	public ResponseEntity<?> update(@PathVariable Long question_id, 
 							@Valid Question question, 
 							BindingResult result) {
 		if (result.hasErrors()) {
@@ -82,7 +78,7 @@ public class QuestionController {
 		}
 		
 		try {
-			Question updatedQuestion = questionService.update(question_id, question, user);
+			Question updatedQuestion = questionService.update(question_id, question);
 			return ResponseEntity.status(HttpStatus.OK).body(updatedQuestion);
 		} catch (UnauthorizedActionException e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -94,9 +90,9 @@ public class QuestionController {
 	
 	@RequestMapping(value = "/{question_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> delete(@AuthenticationPrincipal UserInfo user, @PathVariable Long question_id) {
+	public ResponseEntity<?> delete(@PathVariable Long question_id) {
 		try {
-			questionService.delete(question_id, user);
+			questionService.delete(question_id);
 			return ResponseEntity.status(HttpStatus.OK).build();
 		} catch (UnauthorizedActionException e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

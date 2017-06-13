@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
+import jorge.rv.quizzz.model.AuthenticatedUser;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
-import jorge.rv.quizzz.model.UserInfo;
 import jorge.rv.quizzz.service.QuizService;
 
 @RestController
@@ -41,12 +41,12 @@ public class QuizController {
 	
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> save(@AuthenticationPrincipal UserInfo user, @Valid Quiz quiz, BindingResult result) {
+	public ResponseEntity<?> save(@AuthenticationPrincipal AuthenticatedUser user, @Valid Quiz quiz, BindingResult result) {
 		if (result.hasErrors()) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		
-		Quiz newQuiz = quizService.save(quiz, user);
+		Quiz newQuiz = quizService.save(quiz, user.getUser());
 		return ResponseEntity.status(HttpStatus.CREATED).body(newQuiz);
 	}
 	
@@ -63,13 +63,13 @@ public class QuizController {
 	
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> update(@AuthenticationPrincipal UserInfo user, @PathVariable Long quiz_id, @Valid Quiz quiz, BindingResult result) {
+	public ResponseEntity<?> update(@PathVariable Long quiz_id, @Valid Quiz quiz, BindingResult result) {
 		if (result.hasErrors()) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		
 		try {
-			Quiz returnedQuiz = quizService.update(quiz_id, quiz, user);
+			Quiz returnedQuiz = quizService.update(quiz_id, quiz);
 			return ResponseEntity.status(HttpStatus.OK).body(returnedQuiz);
 		} catch (UnauthorizedActionException e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -80,9 +80,9 @@ public class QuizController {
 	
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> delete(@AuthenticationPrincipal UserInfo user, @PathVariable Long quiz_id) {
+	public ResponseEntity<?> delete(@PathVariable Long quiz_id) {
 		try {
-			quizService.delete(quiz_id, user);
+			quizService.delete(quiz_id);
 			return ResponseEntity.status(HttpStatus.OK).build();
 		} catch (UnauthorizedActionException e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

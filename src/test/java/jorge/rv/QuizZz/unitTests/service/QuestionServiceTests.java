@@ -20,7 +20,7 @@ import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Answer;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
-import jorge.rv.quizzz.model.UserInfo;
+import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.repository.QuestionRepository;
 import jorge.rv.quizzz.service.AccessControlService;
 import jorge.rv.quizzz.service.QuestionService;
@@ -34,7 +34,7 @@ public class QuestionServiceTests {
 	AccessControlService accessControlService;
 	QuestionRepository questionRepository;
 	
-	UserInfo user = new UserInfo();
+	User user = new User();
 	Quiz quiz = new Quiz();
 	Question question = new Question();
 	
@@ -56,7 +56,7 @@ public class QuestionServiceTests {
 	
 	@Test
 	public void testSaveQuestionShouldSave() throws UnauthorizedActionException {
-		service.save(question, user);
+		service.save(question);
 		verify(questionRepository, times(1)).save(question);
 	}
 	
@@ -88,7 +88,7 @@ public class QuestionServiceTests {
 		
 		when(questionRepository.findOne(question.getId())).thenReturn(question);
 		when(questionRepository.save(question)).thenReturn(question);
-		Question returned = service.update(question.getId(), question, question.getQuiz().getCreatedBy());
+		Question returned = service.update(question.getId(), question);
 		
 		verify(questionRepository, times(1)).save(question);
 		assertEquals(returned.getText(), question.getText());
@@ -100,7 +100,7 @@ public class QuestionServiceTests {
 		
 		when(questionRepository.findOne(question.getId())).thenReturn(null);
 		
-		service.update(question.getId(), question, question.getQuiz().getCreatedBy());
+		service.update(question.getId(), question);
 	}
 	
 	@Test(expected = UnauthorizedActionException.class)
@@ -109,9 +109,9 @@ public class QuestionServiceTests {
 		
 		when(questionRepository.findOne(question.getId())).thenReturn(question);
 		doThrow(new UnauthorizedActionException())
-			.when(accessControlService).checkUserPriviledges(user, question);
+			.when(accessControlService).checkCurrentUserPriviledges(question);
 		
-		service.update(question.getId(), question, user);
+		service.update(question.getId(), question);
 	}
 	
 	// Delete
@@ -119,7 +119,7 @@ public class QuestionServiceTests {
 	@Test
 	public void testDeleteShouldDelete() throws QuizZzException {
 		when(questionRepository.findOne(question.getId())).thenReturn(question);
-		service.delete(question.getId(), question.getQuiz().getCreatedBy());
+		service.delete(question.getId());
 		
 		verify(questionRepository, times(1)).delete(question);
 	}
@@ -130,7 +130,7 @@ public class QuestionServiceTests {
 		
 		when(questionRepository.findOne(question.getId())).thenReturn(null);
 		
-		service.delete(question.getId(), user);
+		service.delete(question.getId());
 	}
 	
 	@Test(expected = UnauthorizedActionException.class)
@@ -139,9 +139,9 @@ public class QuestionServiceTests {
 		
 		when(questionRepository.findOne(question.getId())).thenReturn(question);
 		doThrow(new UnauthorizedActionException())
-			.when(accessControlService).checkUserPriviledges(user, question);
+			.when(accessControlService).checkCurrentUserPriviledges(question);
 		
-		service.delete(question.getId(), user);
+		service.delete(question.getId());
 	}
 	
 	// FindAnswersById

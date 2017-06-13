@@ -26,7 +26,7 @@ public class Quiz {
 
 	@OneToOne
 	@JsonIgnore
-	private UserInfo createdBy;
+	private User createdBy;
 
 	@Size(min = 2, max = 100)
 	@NotNull
@@ -48,11 +48,11 @@ public class Quiz {
 		this.questions = exercises;
 	}
 	
-	public UserInfo getCreatedBy() {
+	public User getCreatedBy() {
 		return createdBy;
 	}
 
-	public void setCreatedBy(UserInfo createdBy) {
+	public void setCreatedBy(User createdBy) {
 		this.createdBy = createdBy;
 	}
 
