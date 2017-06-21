@@ -17,6 +17,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
@@ -38,8 +39,17 @@ public class QuizController {
 	
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> findAll(Pageable pageable) {
-		Page<Quiz> quizzes = quizService.findAll(pageable);
+	public ResponseEntity<?> findAll(Pageable pageable,
+										@RequestParam(required = false) String filter) {
+		
+		Page<Quiz> quizzes = null;
+		
+		if (filter == null) {
+			quizzes = quizService.findAll(pageable);
+		} else {
+			quizzes = quizService.search(pageable, filter);
+		}
+		
 		
 		return ResponseEntity.status(HttpStatus.OK).body(quizzes);
 	}

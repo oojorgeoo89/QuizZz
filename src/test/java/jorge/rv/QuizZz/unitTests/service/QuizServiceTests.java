@@ -90,6 +90,44 @@ public class QuizServiceTests {
 		assertEquals(2, result.size());
 	}
 	
+	// Search
+	
+	@Test
+	public void testFindWithEmptyString() {
+		ArrayList<Quiz> q = new ArrayList<>();
+		q.add(quiz);
+		q.add(new Quiz());
+		when(quizRepository.searchByName("", pageable)).thenReturn(new PageImpl<>(q));
+		
+		List<Quiz> result = service.search(pageable, "").getContent();
+		
+		verify(quizRepository, times(1)).searchByName("", pageable);
+		assertEquals(2, result.size());
+	}
+
+	@Test
+	public void testFindWithStringEmptyRepo() {
+		when(quizRepository.searchByName("test", pageable)).thenReturn(new PageImpl<>(new ArrayList<Quiz>()));
+		
+		List<Quiz> result = service.search(pageable, "test").getContent();
+		
+		verify(quizRepository, times(1)).searchByName("test", pageable);
+		assertEquals(0, result.size());
+	}
+	
+	@Test
+	public void testFindWithString() {
+		ArrayList<Quiz> q = new ArrayList<>();
+		q.add(quiz);
+		q.add(new Quiz());
+		when(quizRepository.searchByName("test", pageable)).thenReturn(new PageImpl<>(q));
+		
+		List<Quiz> result = service.search(pageable, "test").getContent();
+		
+		verify(quizRepository, times(1)).searchByName("test", pageable);
+		assertEquals(2, result.size());
+	}
+	
 	// Find
 	
 	@Test

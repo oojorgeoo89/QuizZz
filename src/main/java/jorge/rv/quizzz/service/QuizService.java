@@ -19,4 +19,5 @@ public interface QuizService {
 	void delete(Long id) throws ResourceUnavailableException, UnauthorizedActionException;
 	
 	List<Question> findQuestionsByQuiz(Long id) throws ResourceUnavailableException;
+	Page<Quiz> search(Pageable pageable, String query);
 }

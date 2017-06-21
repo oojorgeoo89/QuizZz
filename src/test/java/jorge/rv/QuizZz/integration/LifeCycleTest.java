@@ -165,6 +165,22 @@ public class LifeCycleTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(2)));
 		
+		// Search Quizzes without credentials
+		mvc.perform(get(QuizController.ROOT_MAPPING + "?filter=" + QUIZ_NAME_1.substring(2, QUIZ_NAME_1.length())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", Matchers.hasSize(1)));
+		
+		// Search Quizzes no results
+		mvc.perform(get(QuizController.ROOT_MAPPING + "?filter=" + "testString"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", Matchers.hasSize(0)));
+				
+		// Search Quizzes providing credentials
+		mvc.perform(get(QuizController.ROOT_MAPPING + "?filter=" + QUIZ_NAME_1.substring(2, QUIZ_NAME_1.length()))
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", Matchers.hasSize(1)));
+		
 		// List a quiz that doesn't exist
 		mvc.perform(get(QuizController.ROOT_MAPPING + "/55"))
 				.andExpect(status().isNotFound());

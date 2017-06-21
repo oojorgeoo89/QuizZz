@@ -85,6 +85,11 @@ public class QuizServiceImpl implements QuizService {
 	private void mergeQuizzes(Quiz currentQuiz, Quiz newQuiz) {
 		currentQuiz.setName(newQuiz.getName());
 		currentQuiz.setDescription(newQuiz.getDescription());
+	}
+
+	@Override
+	public Page<Quiz> search(Pageable pageable, String query) {
+		return quizRepository.searchByName(query, pageable);
 	}	
 	
 }
