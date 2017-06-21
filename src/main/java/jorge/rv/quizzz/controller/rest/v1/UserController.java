@@ -2,6 +2,8 @@ package jorge.rv.quizzz.controller.rest.v1;
 
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +23,9 @@ import jorge.rv.quizzz.service.UserService;
 @RestController
 @RequestMapping(UserController.ROOT_MAPPING)
 public class UserController {
+	
 	public static final String ROOT_MAPPING = "/users";
+	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 	
 	@Autowired
 	UserService userService;
@@ -30,6 +34,7 @@ public class UserController {
 	@PreAuthorize("permitAll")
 	public ResponseEntity<?> save(@Valid User user, BindingResult result) {
 		if (result.hasErrors()){
+			logger.error("Invalid user provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		}
 			

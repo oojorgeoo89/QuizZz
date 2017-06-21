@@ -1,5 +1,7 @@
 package jorge.rv.quizzz.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -13,10 +15,13 @@ import jorge.rv.quizzz.model.User;
 
 @Service("AccessControlService")
 public class AccessControlServiceImpl implements AccessControlService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AccessControlServiceImpl.class);
 
 	@Override
 	public void checkUserPriviledges(AuthenticatedUser user, Quiz quiz) throws UnauthorizedActionException {
 		if (!canUserModifyQuiz(user, quiz)) {
+			logger.error("The user " + user.getId() + " can't modify quiz " + quiz.getId());
 			throw new UnauthorizedActionException();
 		}
 	}
@@ -34,6 +39,7 @@ public class AccessControlServiceImpl implements AccessControlService {
 	@Override
 	public void checkUserPriviledges(AuthenticatedUser user, User userToDelete) throws UnauthorizedActionException {
 		if (!user.getUser().equals(userToDelete)) {
+			logger.error("The user " + user.getId() + " can't delete user " + userToDelete.getId());
 			throw new UnauthorizedActionException();
 		}
 	}
@@ -59,6 +65,10 @@ public class AccessControlServiceImpl implements AccessControlService {
 	}
 	
 	private boolean canUserModifyQuiz(AuthenticatedUser user, Quiz quiz) {
+		if (user == null) {
+			return false;
+		}
+		
 		return quiz.getCreatedBy().equals(user.getUser());
 	}
 	

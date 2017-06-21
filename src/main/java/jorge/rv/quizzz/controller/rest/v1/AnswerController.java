@@ -2,6 +2,8 @@ package jorge.rv.quizzz.controller.rest.v1;
 
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +26,8 @@ import jorge.rv.quizzz.service.QuestionService;
 @RequestMapping(AnswerController.ROOT_MAPPING)
 public class AnswerController {
 	
-	public final static String ROOT_MAPPING = "/answers";
+	public static final String ROOT_MAPPING = "/answers";
+	private static final Logger logger = LoggerFactory.getLogger(Answer.class);
 	
 	@Autowired
 	AnswerService answerService;
@@ -38,6 +41,7 @@ public class AnswerController {
 						BindingResult result, 
 						@RequestParam long question_id) {
 		if (result.hasErrors()) {
+			logger.error("Invalid answer provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		
@@ -70,6 +74,7 @@ public class AnswerController {
 							@Valid Answer answer, 
 							BindingResult result) {
 		if (result.hasErrors()) {
+			logger.error("Invalid answer provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		

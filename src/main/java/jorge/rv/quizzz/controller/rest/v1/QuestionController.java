@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +26,11 @@ import jorge.rv.quizzz.service.QuestionService;
 import jorge.rv.quizzz.service.QuizService;
 
 @RestController
-@RequestMapping(QuestionController.ROOT_MAPPING )
+@RequestMapping(QuestionController.ROOT_MAPPING)
 public class QuestionController {
 	
-	public final static String ROOT_MAPPING = "/questions";
+	public static final String ROOT_MAPPING = "/questions";
+	private static final Logger logger = LoggerFactory.getLogger(QuestionController.class);
 	
 	@Autowired
 	private QuestionService questionService;
@@ -42,6 +45,7 @@ public class QuestionController {
 							@RequestParam Long quiz_id) {
 		
 		if (result.hasErrors()) {
+			logger.error("Invalid question provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		
@@ -74,6 +78,7 @@ public class QuestionController {
 							@Valid Question question, 
 							BindingResult result) {
 		if (result.hasErrors()) {
+			logger.error("Invalid question provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		

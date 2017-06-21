@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +29,9 @@ import jorge.rv.quizzz.service.QuizService;
 @RestController
 @RequestMapping(QuizController.ROOT_MAPPING)
 public class QuizController {
-	public final static String ROOT_MAPPING = "/quizzes";
+	
+	public static final String ROOT_MAPPING = "/quizzes";
+	private static final Logger logger = LoggerFactory.getLogger(QuizController.class);
 
 	@Autowired
 	private QuizService quizService;
@@ -36,6 +40,7 @@ public class QuizController {
 	@PreAuthorize("permitAll")
 	public ResponseEntity<?> findAll(Pageable pageable) {
 		Page<Quiz> quizzes = quizService.findAll(pageable);
+		
 		return ResponseEntity.status(HttpStatus.OK).body(quizzes);
 	}
 	
@@ -43,6 +48,7 @@ public class QuizController {
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> save(@AuthenticationPrincipal AuthenticatedUser user, @Valid Quiz quiz, BindingResult result) {
 		if (result.hasErrors()) {
+			logger.error("Invalid quiz provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		
@@ -65,6 +71,7 @@ public class QuizController {
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> update(@PathVariable Long quiz_id, @Valid Quiz quiz, BindingResult result) {
 		if (result.hasErrors()) {
+			logger.error("Invalid quiz provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		

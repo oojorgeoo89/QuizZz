@@ -2,6 +2,8 @@ package jorge.rv.quizzz.service;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +20,7 @@ import jorge.rv.quizzz.repository.QuizRepository;
 @Service("QuizService")
 public class QuizServiceImpl implements QuizService {
 
+	private static final Logger logger = LoggerFactory.getLogger(QuizServiceImpl.class);
 	private QuizRepository quizRepository;
 	private AccessControlService accessControlService;
 	
@@ -46,6 +49,7 @@ public class QuizServiceImpl implements QuizService {
 		Quiz quiz = quizRepository.findOne(id);
 		
 		if (quiz == null) {
+			logger.error("Quiz " + id + " not found");
 			throw new ResourceUnavailableException();
 		}
 		

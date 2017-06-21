@@ -1,5 +1,7 @@
 package jorge.rv.quizzz.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +14,7 @@ import jorge.rv.quizzz.repository.AnswerRepository;
 @Service("AnswerService")
 public class AnswerServiceImpl implements AnswerService {
 
+	private static final Logger logger = LoggerFactory.getLogger(AnswerServiceImpl.class);
 	private AnswerRepository answerRepository;
 	private AccessControlService accessControlService;
 	
@@ -27,6 +30,7 @@ public class AnswerServiceImpl implements AnswerService {
 		Answer answer = answerRepository.findOne(id);
 		
 		if (answer == null) {
+			logger.error("Answer " + id + " not found");
 			throw new ResourceUnavailableException();
 		}
 		

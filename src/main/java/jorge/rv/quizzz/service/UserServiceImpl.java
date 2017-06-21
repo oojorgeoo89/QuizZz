@@ -5,6 +5,8 @@ import java.util.HashSet;
 
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,6 +27,7 @@ import jorge.rv.quizzz.repository.UserRepository;
 @Transactional
 public class UserServiceImpl implements UserService {
 
+	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 	private UserRepository userRepository;
 	private RoleRepository roleRepository;
 	private AccessControlService accessControlService;
@@ -41,6 +44,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User saveUser(User user) throws UserAlreadyExistsException {
 		if (userRepository.findByEmail(user.getEmail()) != null) {
+			logger.error("The mail " + user.getEmail() + " is already in use");
 			throw new UserAlreadyExistsException();
 		}
 		
@@ -55,6 +59,7 @@ public class UserServiceImpl implements UserService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		User user = userRepository.findByEmail(username);
 		if (user == null) {
+			logger.error("The user " + username + " can't be found");
 			throw new UsernameNotFoundException("User " + username + " not found.");
 		}
         
@@ -66,6 +71,7 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findOne(id);
 		
 		if (user == null) {
+			logger.error("The user " + id + " can't be found");
 			throw new ResourceUnavailableException();
 		}
 		
