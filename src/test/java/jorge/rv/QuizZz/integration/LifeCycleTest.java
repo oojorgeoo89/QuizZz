@@ -116,7 +116,7 @@ public class LifeCycleTest {
 		
 		/***********************
 		 * 
-		 * Quiz Controller
+		 * Quiz
 		 * 
 		 ***********************/
 		
@@ -165,10 +165,15 @@ public class LifeCycleTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(2)));
 		
-		// Search Quizzes without credentials
+		// Search Quizzes
 		mvc.perform(get(QuizController.ROOT_MAPPING + "?filter=" + QUIZ_NAME_1.substring(2, QUIZ_NAME_1.length())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(1)));
+		
+		// Search Quizzes
+		mvc.perform(get(QuizController.ROOT_MAPPING + "?filter="))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", Matchers.hasSize(2)));
 		
 		// Search Quizzes no results
 		mvc.perform(get(QuizController.ROOT_MAPPING + "?filter=" + "testString"))
@@ -178,6 +183,15 @@ public class LifeCycleTest {
 		// Search Quizzes providing credentials
 		mvc.perform(get(QuizController.ROOT_MAPPING + "?filter=" + QUIZ_NAME_1.substring(2, QUIZ_NAME_1.length()))
 				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", Matchers.hasSize(1)));
+		
+		// List all quizzes by Invalid User
+		mvc.perform(get(UserController.ROOT_MAPPING + "/55/quizzes"))
+				.andExpect(status().isNotFound());
+		
+		// List all quizzes from the first user
+		mvc.perform(get(UserController.ROOT_MAPPING + "/1/quizzes"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(1)));
 		

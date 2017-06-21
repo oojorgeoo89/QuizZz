@@ -88,8 +88,13 @@ public class QuizServiceImpl implements QuizService {
 	}
 
 	@Override
-	public Page<Quiz> search(Pageable pageable, String query) {
+	public Page<Quiz> search(String query, Pageable pageable) {
 		return quizRepository.searchByName(query, pageable);
+	}
+
+	@Override
+	public Page<Quiz> findQuizzesByUser(User user, Pageable pageable) {
+		return quizRepository.findByCreatedBy(user, pageable);
 	}	
 	
 }

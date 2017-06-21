@@ -47,7 +47,7 @@ public class QuizController {
 		if (filter == null) {
 			quizzes = quizService.findAll(pageable);
 		} else {
-			quizzes = quizService.search(pageable, filter);
+			quizzes = quizService.search(filter, pageable);
 		}
 		
 		

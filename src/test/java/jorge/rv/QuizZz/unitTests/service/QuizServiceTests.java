@@ -99,7 +99,7 @@ public class QuizServiceTests {
 		q.add(new Quiz());
 		when(quizRepository.searchByName("", pageable)).thenReturn(new PageImpl<>(q));
 		
-		List<Quiz> result = service.search(pageable, "").getContent();
+		List<Quiz> result = service.search("", pageable).getContent();
 		
 		verify(quizRepository, times(1)).searchByName("", pageable);
 		assertEquals(2, result.size());
@@ -109,7 +109,7 @@ public class QuizServiceTests {
 	public void testFindWithStringEmptyRepo() {
 		when(quizRepository.searchByName("test", pageable)).thenReturn(new PageImpl<>(new ArrayList<Quiz>()));
 		
-		List<Quiz> result = service.search(pageable, "test").getContent();
+		List<Quiz> result = service.search("test", pageable).getContent();
 		
 		verify(quizRepository, times(1)).searchByName("test", pageable);
 		assertEquals(0, result.size());
@@ -122,9 +122,24 @@ public class QuizServiceTests {
 		q.add(new Quiz());
 		when(quizRepository.searchByName("test", pageable)).thenReturn(new PageImpl<>(q));
 		
-		List<Quiz> result = service.search(pageable, "test").getContent();
+		List<Quiz> result = service.search("test", pageable).getContent();
 		
 		verify(quizRepository, times(1)).searchByName("test", pageable);
+		assertEquals(2, result.size());
+	}
+	
+	// Find by User
+	
+	@Test
+	public void testFindByUser() {
+		ArrayList<Quiz> q = new ArrayList<>();
+		q.add(quiz);
+		q.add(new Quiz());
+		when(quizRepository.findByCreatedBy(user, pageable)).thenReturn(new PageImpl<>(q));
+		
+		List<Quiz> result = service.findQuizzesByUser(user, pageable).getContent();
+		
+		verify(quizRepository, times(1)).findByCreatedBy(user, pageable);
 		assertEquals(2, result.size());
 	}
 	

@@ -7,10 +7,13 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import jorge.rv.quizzz.model.Quiz;
+import jorge.rv.quizzz.model.User;
 
 @Repository("QuizRepository")
 public interface QuizRepository extends PagingAndSortingRepository<Quiz, Long> {
 
+	Page<Quiz> findByCreatedBy(User user, Pageable pageable);
+	
 	@Query("select q from Quiz q where q.name like %?1%")
 	Page<Quiz> searchByName(String name, Pageable pageable);
 }
