@@ -1,4 +1,4 @@
-package jorge.rv.quizzz;
+package jorge.rv.quizzz.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
