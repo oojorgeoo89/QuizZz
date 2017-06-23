@@ -1,5 +1,6 @@
 package jorge.rv.quizzz.model;
 
+import java.util.Calendar;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -48,6 +49,13 @@ public class User {
 	@ManyToMany
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles;
+	
+	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)
+	private Calendar createdDate;
+
+	public Calendar getCreatedDate() {
+		return createdDate;
+	}
 
 	public Long getId() {
 		return id;

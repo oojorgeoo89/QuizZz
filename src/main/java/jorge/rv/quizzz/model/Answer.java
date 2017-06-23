@@ -1,5 +1,8 @@
 package jorge.rv.quizzz.model;
 
+import java.util.Calendar;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -29,6 +32,13 @@ public class Answer {
 	@JsonIgnore
 	@NotNull
 	private Boolean iscorrect;
+	
+	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)
+	private Calendar createdDate;
+
+	public Calendar getCreatedDate() {
+		return createdDate;
+	}
 
 	public long getId() {
 		return id;

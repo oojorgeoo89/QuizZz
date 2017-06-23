@@ -1,8 +1,10 @@
 package jorge.rv.quizzz.model;
 
+import java.util.Calendar;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -39,6 +41,13 @@ public class Quiz {
 	@OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JsonIgnore
 	private List<Question> questions;
+	
+	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)
+	private Calendar createdDate;
+
+	public Calendar getCreatedDate() {
+		return createdDate;
+	}
 
 	public List<Question> getQuestions() {
 		return questions;
