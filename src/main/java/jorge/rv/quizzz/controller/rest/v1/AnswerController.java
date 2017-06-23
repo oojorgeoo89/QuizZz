@@ -39,65 +39,51 @@ public class AnswerController {
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> save(@Valid Answer answer, 
 						BindingResult result, 
-						@RequestParam long question_id) {
+						@RequestParam long question_id) 
+								throws ResourceUnavailableException, UnauthorizedActionException {
+		
 		if (result.hasErrors()) {
 			logger.error("Invalid answer provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		
-		try {
-			Question question = questionService.find(question_id);
-			answer.setQuestion(question);
-			Answer newAnswer = answerService.save(answer);
-			return ResponseEntity.status(HttpStatus.CREATED).body(newAnswer);
-		} catch (UnauthorizedActionException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+		Question question = questionService.find(question_id);
+		answer.setQuestion(question);
+		Answer newAnswer = answerService.save(answer);
+		return ResponseEntity.status(HttpStatus.CREATED).body(newAnswer);
 	}
 	
 	@RequestMapping(value = "/{answer_id}", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> find(@PathVariable Long answer_id) {
-		try {
-			Answer answer = answerService.find(answer_id);
-			return ResponseEntity.status(HttpStatus.OK).body(answer);
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+	public ResponseEntity<?> find(@PathVariable Long answer_id) 
+			throws ResourceUnavailableException {
+		
+		Answer answer = answerService.find(answer_id);
+		return ResponseEntity.status(HttpStatus.OK).body(answer);
 	}
 	
 	@RequestMapping(value = "/{answer_id}", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> update(@PathVariable Long answer_id, 
 							@Valid Answer answer, 
-							BindingResult result) {
+							BindingResult result) 
+									throws UnauthorizedActionException, ResourceUnavailableException {
+		
 		if (result.hasErrors()) {
 			logger.error("Invalid answer provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		
-		try {
-			Answer updatedAnswer =  answerService.update(answer_id, answer);
-			return ResponseEntity.status(HttpStatus.OK).body(updatedAnswer);
-		} catch (UnauthorizedActionException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+		Answer updatedAnswer =  answerService.update(answer_id, answer);
+		return ResponseEntity.status(HttpStatus.OK).body(updatedAnswer);
 	}
 	
 	@RequestMapping(value = "/{answer_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> delete(@PathVariable Long answer_id) {
-		try {
-			answerService.delete(answer_id);
-			return ResponseEntity.status(HttpStatus.OK).build();
-		} catch (UnauthorizedActionException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+	public ResponseEntity<?> delete(@PathVariable Long answer_id) 
+			throws UnauthorizedActionException, ResourceUnavailableException {
+		
+		answerService.delete(answer_id);
+		return ResponseEntity.status(HttpStatus.OK).build();
 	}
 }

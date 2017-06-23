@@ -39,43 +39,36 @@ public class UserController {
 	
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> save(@Valid User user, BindingResult result) {
+	public ResponseEntity<?> save(@Valid User user, BindingResult result) 
+			throws UserAlreadyExistsException {
+		
 		if (result.hasErrors()){
 			logger.error("Invalid user provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		}
 			
-		try {
-			User createdUser = userService.saveUser(user);
-			return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-		} catch (UserAlreadyExistsException e) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).build();
-		}
+		User createdUser = userService.saveUser(user);
+		return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
 	}
 	
 	@RequestMapping(value = "/{user_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> delete(@PathVariable Long user_id) {
-		try {
-			userService.delete(user_id);
-			return ResponseEntity.status(HttpStatus.OK).build();
-		} catch (UnauthorizedActionException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+	public ResponseEntity<?> delete(@PathVariable Long user_id) 
+			throws UnauthorizedActionException, ResourceUnavailableException {
+		
+		userService.delete(user_id);
+		return ResponseEntity.status(HttpStatus.OK).build();	
 	}
 	
 	@RequestMapping(value = "/{user_id}/quizzes", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> getQuizzesByUser(Pageable pageable, @PathVariable Long user_id) {
-		try {
-			User user = userService.find(user_id);
-			Page<Quiz> quizzes = quizService.findQuizzesByUser(user, pageable);
-			return ResponseEntity.status(HttpStatus.OK).body(quizzes);
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+	public ResponseEntity<?> getQuizzesByUser(Pageable pageable, @PathVariable Long user_id) 
+			throws ResourceUnavailableException {
+		
+		User user = userService.find(user_id);
+		Page<Quiz> quizzes = quizService.findQuizzesByUser(user, pageable);
+		return ResponseEntity.status(HttpStatus.OK).body(quizzes);
+		
 	}
 
 }

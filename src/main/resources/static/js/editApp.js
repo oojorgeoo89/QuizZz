@@ -5,10 +5,10 @@
 	var editCtrl = function($scope, $http) {
 		
 		$scope.refreshQuizData = function() {
-			if ($scope.listId == 0)
+			if ($scope.quizId == 0)
 				return;
 
-			$http.get("/v1/quiz/" + $scope.listId)
+			$http.get("/quizzes/" + $scope.quizId)
 			.then(
 					function(response) {
 						$scope.quizName = response.data.name;
@@ -21,10 +21,10 @@
 		}
 
 		$scope.refreshQuestions = function() {
-			if ($scope.listId == 0)
+			if ($scope.quizId == 0)
 				return;
 
-			$http.get("/v1/quiz/" + $scope.listId + "/questions/")
+			$http.get("/quizzes/" + $scope.quizId + "/questions/")
 			.then(
 					function(response) {
 						$scope.questions = response.data;
@@ -37,9 +37,9 @@
 		}
 		
 		$scope.saveQuiz = function(quizName, quizDescription) {
-			var url = "/v1/quiz/";
-			if ($scope.listId != 0)
-				url = url + $scope.listId + "/";
+			var url = "/quizzes/";
+			if ($scope.quizId != 0)
+				url = url + $scope.quizId + "/";
 
 			$http.post(url + "?name=" + quizName + "&description=" + quizDescription)
 			.then(
@@ -53,13 +53,13 @@
 		}
 		
 		$scope.saveQuestion = function(questionId, questionText) {
-			var url = "/v1/quiz/" + $scope.listId + "/questions/";
+			var url = "/questions";
 			
 			if (questionId != 0) {
-				url = url + questionId;
+				url = url + "/" + questionId;
 			}
 
-			$http.post(url + "?text=" + questionText)
+			$http.post(url + "?text=" + questionText + "&quiz_id=" + $scope.quizId)
 			.then(
 					function(response) {
 						console.log(response.data);
@@ -77,7 +77,7 @@
 			if (questionId == 0)
 				return;
 
-			$http.delete("/v1/quiz/" + $scope.listId + "/questions/" + questionId)
+			$http.delete("/questions/" + questionId)
 			.then(
 					function(response) {
 						$scope.refreshQuestions();

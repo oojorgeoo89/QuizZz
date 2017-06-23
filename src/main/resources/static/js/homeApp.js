@@ -4,10 +4,10 @@
 
   var homeCtrl = function($scope, $http) {
 
-    $http.get("/v1/quiz/")
+    $http.get("/quizzes")
     	.then(
         	function(response) {
-        		$scope.quizzes = response.data;
+        		$scope.quizzes = response.data.content;
         	}, 
         	function(reason) {
         		$scope.error = "Could not fetch the data.";

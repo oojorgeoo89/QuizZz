@@ -50,13 +50,13 @@ public class QuizController {
 			quizzes = quizService.search(filter, pageable);
 		}
 		
-		
 		return ResponseEntity.status(HttpStatus.OK).body(quizzes);
 	}
 	
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> save(@AuthenticationPrincipal AuthenticatedUser user, @Valid Quiz quiz, BindingResult result) {
+		
 		if (result.hasErrors()) {
 			logger.error("Invalid quiz provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
@@ -68,55 +68,41 @@ public class QuizController {
 	
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> find(@PathVariable Long quiz_id) {
-		try {
-			Quiz quiz = quizService.find(quiz_id);
-			return ResponseEntity.status(HttpStatus.OK).body(quiz);
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+	public ResponseEntity<?> find(@PathVariable Long quiz_id) throws ResourceUnavailableException {	
+		Quiz quiz = quizService.find(quiz_id);
+		return ResponseEntity.status(HttpStatus.OK).body(quiz);
 	}
 	
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> update(@PathVariable Long quiz_id, @Valid Quiz quiz, BindingResult result) {
+	public ResponseEntity<?> update(@PathVariable Long quiz_id, @Valid Quiz quiz, BindingResult result) 
+			throws ResourceUnavailableException, UnauthorizedActionException {
+		
 		if (result.hasErrors()) {
 			logger.error("Invalid quiz provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		
-		try {
-			Quiz returnedQuiz = quizService.update(quiz_id, quiz);
-			return ResponseEntity.status(HttpStatus.OK).body(returnedQuiz);
-		} catch (UnauthorizedActionException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+		Quiz returnedQuiz = quizService.update(quiz_id, quiz);
+		return ResponseEntity.status(HttpStatus.OK).body(returnedQuiz);
 	}
 	
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> delete(@PathVariable Long quiz_id) {
-		try {
-			quizService.delete(quiz_id);
-			return ResponseEntity.status(HttpStatus.OK).build();
-		} catch (UnauthorizedActionException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+	public ResponseEntity<?> delete(@PathVariable Long quiz_id) 
+			throws ResourceUnavailableException, UnauthorizedActionException {
+		
+		quizService.delete(quiz_id);
+		return ResponseEntity.status(HttpStatus.OK).build();
 	}
 	
 	@RequestMapping(value = "/{quiz_id}/questions", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> findQuestions(@PathVariable Long quiz_id) {
-		try {
-			List<Question> questions =  quizService.findQuestionsByQuiz(quiz_id);
-			return ResponseEntity.status(HttpStatus.OK).body(questions);
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+	public ResponseEntity<?> findQuestions(@PathVariable Long quiz_id) 
+			throws ResourceUnavailableException {
+		
+		List<Question> questions =  quizService.findQuestionsByQuiz(quiz_id);
+		return ResponseEntity.status(HttpStatus.OK).body(questions);
 	}
 	
 }

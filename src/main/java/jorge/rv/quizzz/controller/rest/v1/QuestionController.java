@@ -42,79 +42,61 @@ public class QuestionController {
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> save(@Valid Question question, 
 							BindingResult result, 
-							@RequestParam Long quiz_id) {
+							@RequestParam Long quiz_id)
+									throws ResourceUnavailableException, UnauthorizedActionException {
 		
 		if (result.hasErrors()) {
 			logger.error("Invalid question provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		
-		try {
-			Quiz quiz = quizService.find(quiz_id);
-			question.setQuiz(quiz);
-			Question newQuestion =  questionService.save(question);
-			return ResponseEntity.status(HttpStatus.CREATED).body(newQuestion);
-		} catch (UnauthorizedActionException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+		Quiz quiz = quizService.find(quiz_id);
+		question.setQuiz(quiz);
+		Question newQuestion =  questionService.save(question);
+		return ResponseEntity.status(HttpStatus.CREATED).body(newQuestion);
 	}
 	
 	@RequestMapping(value = "/{question_id}", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> find(@PathVariable Long question_id) {
-		try {
-			Question question = questionService.find(question_id);
-			return ResponseEntity.status(HttpStatus.OK).body(question);
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+	public ResponseEntity<?> find(@PathVariable Long question_id)
+			throws ResourceUnavailableException {
+		
+		Question question = questionService.find(question_id);
+		return ResponseEntity.status(HttpStatus.OK).body(question);
 	}
 	
 	@RequestMapping(value = "/{question_id}", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> update(@PathVariable Long question_id, 
 							@Valid Question question, 
-							BindingResult result) {
+							BindingResult result)
+									throws ResourceUnavailableException, UnauthorizedActionException {
+		
 		if (result.hasErrors()) {
 			logger.error("Invalid question provided");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
 		}
 		
-		try {
-			Question updatedQuestion = questionService.update(question_id, question);
-			return ResponseEntity.status(HttpStatus.OK).body(updatedQuestion);
-		} catch (UnauthorizedActionException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
-		
+		Question updatedQuestion = questionService.update(question_id, question);
+		return ResponseEntity.status(HttpStatus.OK).body(updatedQuestion);	
 	}
 	
 	@RequestMapping(value = "/{question_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> delete(@PathVariable Long question_id) {
-		try {
-			questionService.delete(question_id);
-			return ResponseEntity.status(HttpStatus.OK).build();
-		} catch (UnauthorizedActionException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+	public ResponseEntity<?> delete(@PathVariable Long question_id)
+			throws ResourceUnavailableException, UnauthorizedActionException {
+		
+		questionService.delete(question_id);
+		return ResponseEntity.status(HttpStatus.OK).build();
 	}
 	
 	@RequestMapping(value = "/{question_id}/answers", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> findAnswers(@PathVariable Long question_id) {
-		try {
-			List<Answer> answers = questionService.findAnswersByQuestion(question_id);
-			return ResponseEntity.status(HttpStatus.OK).body(answers);
-		} catch (ResourceUnavailableException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+	public ResponseEntity<?> findAnswers(@PathVariable Long question_id)
+			throws ResourceUnavailableException {
+		
+		List<Answer> answers = questionService.findAnswersByQuestion(question_id);
+		return ResponseEntity.status(HttpStatus.OK).body(answers);
 	}
 
 }
