@@ -12,7 +12,7 @@ public class RestVerifier {
 	public static void verifyModelResult(BindingResult result) throws ModelVerificationException {
 		if (result.hasErrors()){
 			logger.error(result.toString());
-			throw new ModelVerificationException();
+			throw new ModelVerificationException(result.getFieldError().getDefaultMessage());
 		}
 	}
 }

@@ -15,7 +15,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Table(name = "answer")
 public class Answer extends BaseModel implements UserOwned {
 	
-	@Size(min=1, max=20)
+	@Size(min=1, max=20, message = "The answer should be less than 20 characters")
+	@NotNull(message = "No answer text provided.")
 	private String text;
 	
 	@ManyToOne

@@ -23,12 +23,12 @@ public class Quiz extends BaseModel implements UserOwned {
 	@JsonIgnore
 	private User createdBy;
 
-	@Size(min = 2, max = 100)
-	@NotNull
+	@Size(min = 2, max = 100, message = "The name must be between 2 and 100 messages.")
+	@NotNull(message = "Please provide a name")
 	private String name;
 
-	@Size(max = 100)
-	@NotNull
+	@Size(max = 100, message = "The description can't be longer than 100 characters.")
+	@NotNull(message = "Please, provide a description")
 	private String description;
 
 	@OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
