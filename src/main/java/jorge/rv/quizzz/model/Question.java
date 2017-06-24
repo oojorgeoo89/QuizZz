@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "question")
-public class Question extends BaseModel{
+public class Question extends BaseModel implements UserOwned {
 
 	@Size(min=2, max=20)
 	@NotNull(message="Question body not provided")
@@ -60,6 +60,11 @@ public class Question extends BaseModel{
 
 	public void setText(String text) {
 		this.text = text;
+	}
+
+	@Override
+	public User getUser() {
+		return quiz.getUser();
 	}
 
 }

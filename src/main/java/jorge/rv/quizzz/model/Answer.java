@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "answer")
-public class Answer extends BaseModel {
+public class Answer extends BaseModel implements UserOwned {
 	
 	@Size(min=1, max=20)
 	private String text;
@@ -55,6 +55,11 @@ public class Answer extends BaseModel {
 
 	public void setIscorrect(Boolean isCorrect) {
 		this.iscorrect = isCorrect;
+	}
+
+	@Override
+	public User getUser() {
+		return question.getUser();
 	}
 	
 }

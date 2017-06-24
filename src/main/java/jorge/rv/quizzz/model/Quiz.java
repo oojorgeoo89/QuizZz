@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "quiz")
-public class Quiz extends BaseModel {
+public class Quiz extends BaseModel implements UserOwned {
 
 	@OneToOne
 	@JsonIgnore
@@ -72,5 +72,10 @@ public class Quiz extends BaseModel {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	@Override
+	public User getUser() {
+		return getCreatedBy();
 	}
 }
