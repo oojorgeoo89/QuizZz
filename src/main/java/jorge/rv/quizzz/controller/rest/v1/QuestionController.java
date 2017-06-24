@@ -4,19 +4,19 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import jorge.rv.quizzz.controller.utils.RestVerifier;
+import jorge.rv.quizzz.exceptions.ModelVerificationException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Answer;
@@ -30,7 +30,6 @@ import jorge.rv.quizzz.service.QuizService;
 public class QuestionController {
 	
 	public static final String ROOT_MAPPING = "/questions";
-	private static final Logger logger = LoggerFactory.getLogger(QuestionController.class);
 	
 	@Autowired
 	private QuestionService questionService;
@@ -40,63 +39,57 @@ public class QuestionController {
 	
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> save(@Valid Question question, 
+	@ResponseStatus(HttpStatus.CREATED)
+	public Question save(@Valid Question question, 
 							BindingResult result, 
 							@RequestParam Long quiz_id)
-									throws ResourceUnavailableException, UnauthorizedActionException {
+									throws ResourceUnavailableException, UnauthorizedActionException, ModelVerificationException {
 		
-		if (result.hasErrors()) {
-			logger.error("Invalid question provided");
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
-		}
+		RestVerifier.verifyModelResult(result);
 		
 		Quiz quiz = quizService.find(quiz_id);
 		question.setQuiz(quiz);
-		Question newQuestion =  questionService.save(question);
-		return ResponseEntity.status(HttpStatus.CREATED).body(newQuestion);
+		return questionService.save(question);
 	}
 	
 	@RequestMapping(value = "/{question_id}", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> find(@PathVariable Long question_id)
+	@ResponseStatus(HttpStatus.OK)
+	public Question find(@PathVariable Long question_id)
 			throws ResourceUnavailableException {
 		
-		Question question = questionService.find(question_id);
-		return ResponseEntity.status(HttpStatus.OK).body(question);
+		return questionService.find(question_id);
 	}
 	
 	@RequestMapping(value = "/{question_id}", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> update(@PathVariable Long question_id, 
+	@ResponseStatus(HttpStatus.OK)
+	public Question update(@PathVariable Long question_id, 
 							@Valid Question question, 
 							BindingResult result)
-									throws ResourceUnavailableException, UnauthorizedActionException {
+									throws ResourceUnavailableException, UnauthorizedActionException, ModelVerificationException {
 		
-		if (result.hasErrors()) {
-			logger.error("Invalid question provided");
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getAllErrors());
-		}
-		
-		Question updatedQuestion = questionService.update(question_id, question);
-		return ResponseEntity.status(HttpStatus.OK).body(updatedQuestion);	
+		RestVerifier.verifyModelResult(result);
+		return questionService.update(question_id, question);
+			
 	}
 	
 	@RequestMapping(value = "/{question_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> delete(@PathVariable Long question_id)
+	@ResponseStatus(HttpStatus.OK)
+	public void delete(@PathVariable Long question_id)
 			throws ResourceUnavailableException, UnauthorizedActionException {
 		
 		questionService.delete(question_id);
-		return ResponseEntity.status(HttpStatus.OK).build();
 	}
 	
 	@RequestMapping(value = "/{question_id}/answers", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> findAnswers(@PathVariable Long question_id)
+	@ResponseStatus(HttpStatus.OK)
+	public List<Answer> findAnswers(@PathVariable Long question_id)
 			throws ResourceUnavailableException {
 		
-		List<Answer> answers = questionService.findAnswersByQuestion(question_id);
-		return ResponseEntity.status(HttpStatus.OK).body(answers);
+		return questionService.findAnswersByQuestion(question_id);
 	}
 
 }

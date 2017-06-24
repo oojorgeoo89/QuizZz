@@ -2,20 +2,20 @@ package jorge.rv.quizzz.controller.rest.v1;
 
 import javax.validation.Valid;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import jorge.rv.quizzz.controller.utils.RestVerifier;
+import jorge.rv.quizzz.exceptions.ModelVerificationException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.exceptions.UserAlreadyExistsException;
@@ -29,7 +29,6 @@ import jorge.rv.quizzz.service.UserService;
 public class UserController {
 	
 	public static final String ROOT_MAPPING = "/users";
-	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 	
 	@Autowired
 	UserService userService;
@@ -39,36 +38,31 @@ public class UserController {
 	
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> save(@Valid User user, BindingResult result) 
-			throws UserAlreadyExistsException {
+	@ResponseStatus(HttpStatus.CREATED)
+	public User save(@Valid User user, BindingResult result) 
+			throws UserAlreadyExistsException, ModelVerificationException {
 		
-		if (result.hasErrors()){
-			logger.error("Invalid user provided");
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-		}
-			
-		User createdUser = userService.saveUser(user);
-		return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+		RestVerifier.verifyModelResult(result);
+		return userService.saveUser(user);
 	}
 	
 	@RequestMapping(value = "/{user_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> delete(@PathVariable Long user_id) 
+	@ResponseStatus(HttpStatus.OK)
+	public void delete(@PathVariable Long user_id) 
 			throws UnauthorizedActionException, ResourceUnavailableException {
 		
-		userService.delete(user_id);
-		return ResponseEntity.status(HttpStatus.OK).build();	
+		userService.delete(user_id);	
 	}
 	
 	@RequestMapping(value = "/{user_id}/quizzes", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ResponseEntity<?> getQuizzesByUser(Pageable pageable, @PathVariable Long user_id) 
+	@ResponseStatus(HttpStatus.OK)
+	public Page<Quiz> getQuizzesByUser(Pageable pageable, @PathVariable Long user_id) 
 			throws ResourceUnavailableException {
 		
 		User user = userService.find(user_id);
-		Page<Quiz> quizzes = quizService.findQuizzesByUser(user, pageable);
-		return ResponseEntity.status(HttpStatus.OK).body(quizzes);
-		
+		return quizService.findQuizzesByUser(user, pageable);
 	}
 
 }

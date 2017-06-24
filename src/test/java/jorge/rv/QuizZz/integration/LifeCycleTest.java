@@ -27,10 +27,8 @@ import jorge.rv.quizzz.controller.rest.v1.QuestionController;
 import jorge.rv.quizzz.controller.rest.v1.QuizController;
 import jorge.rv.quizzz.controller.rest.v1.UserController;
 
-//@Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = QuizZzApplication.class)
-
 @ActiveProfiles("test")
 public class LifeCycleTest {
 	private static final String EMAIL_KEY = "email";
