@@ -28,7 +28,7 @@ import jorge.rv.quizzz.service.UserService;
 @RequestMapping(UserController.ROOT_MAPPING)
 public class UserController {
 	
-	public static final String ROOT_MAPPING = "/users";
+	public static final String ROOT_MAPPING = "/api/users";
 	
 	@Autowired
 	UserService userService;

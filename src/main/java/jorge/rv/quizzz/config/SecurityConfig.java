@@ -5,6 +5,7 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,29 +19,10 @@ import org.springframework.security.web.authentication.rememberme.PersistentToke
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 	
 	@Autowired
 	DataSource dataSource;
-	
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-	  http
-	  	.httpBasic()
-	  .and()
-	  	.formLogin()
-	  		.defaultSuccessUrl("/", true)
-	  .and()
-	  	.rememberMe()
-			.tokenRepository(persistentTokenRepository())
-	  .and()
-	  	.csrf()
-	  		.disable()
-	  	.logout()
-	  		.logoutSuccessUrl("/")
-	  		.deleteCookies("JSESSIONID")
-	  		.invalidateHttpSession(true) ;
-	}
 	
 	@Bean
 	public PersistentTokenRepository persistentTokenRepository() {
@@ -54,5 +36,53 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			throws Exception {
 		auth.userDetailsService(userDetailsService).passwordEncoder(encoder);
 	}
+	
+	@Configuration
+	@Order(1)
+	public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+		
+		@Autowired
+		PersistentTokenRepository persistentTokenRepository;
+		
+		@Override
+		protected void configure(HttpSecurity http) throws Exception {
+		  http
+		  		.antMatcher("/api/**")   
+		  		.authorizeRequests()
+		  		.anyRequest()
+		  		.permitAll()
+		  	.and()
+		  		.httpBasic()
+		  	.and()
+		  		.csrf()
+		  		.disable();
+		}
+	}
+	
+	@Configuration
+	public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+
+		@Autowired
+		PersistentTokenRepository persistentTokenRepository;
+		
+		@Override
+		protected void configure(HttpSecurity http) throws Exception {
+			http
+			  .formLogin()
+			  	.defaultSuccessUrl("/", true)
+			  .and()
+			  	.rememberMe()
+					.tokenRepository(persistentTokenRepository)
+			  .and()
+			  	.csrf()
+			  		.disable()
+			  	.logout()
+			  		.logoutSuccessUrl("/")
+			  		.deleteCookies("JSESSIONID")
+			  		.invalidateHttpSession(true) ;
+		}
+	}
+	
+	
 	
 }

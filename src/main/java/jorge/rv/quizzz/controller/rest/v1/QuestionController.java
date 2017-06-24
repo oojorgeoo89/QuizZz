@@ -29,7 +29,7 @@ import jorge.rv.quizzz.service.QuizService;
 @RequestMapping(QuestionController.ROOT_MAPPING)
 public class QuestionController {
 	
-	public static final String ROOT_MAPPING = "/questions";
+	public static final String ROOT_MAPPING = "/api/questions";
 	
 	@Autowired
 	private QuestionService questionService;

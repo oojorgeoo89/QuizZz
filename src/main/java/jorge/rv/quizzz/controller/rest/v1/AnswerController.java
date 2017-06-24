@@ -26,7 +26,7 @@ import jorge.rv.quizzz.service.QuestionService;
 @RequestMapping(AnswerController.ROOT_MAPPING)
 public class AnswerController {
 	
-	public static final String ROOT_MAPPING = "/answers";
+	public static final String ROOT_MAPPING = "/api/answers";
 	
 	@Autowired
 	AnswerService answerService;
