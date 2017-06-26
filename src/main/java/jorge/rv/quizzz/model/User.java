@@ -32,7 +32,7 @@ public class User extends BaseModel {
 	private String password;
 	
 	@Column(name = "name")
-	@NotEmpty(message = "Please provide your name")
+	@NotEmpty(message = "Please provide your username")
 	private String name;
 	
 	@Column(name = "active")
