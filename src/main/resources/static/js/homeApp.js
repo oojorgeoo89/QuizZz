@@ -4,7 +4,7 @@
 
   var homeCtrl = function($scope, $http) {
 
-    $http.get("/quizzes")
+    $http.get("/api/quizzes")
     	.then(
         	function(response) {
         		$scope.quizzes = response.data.content;

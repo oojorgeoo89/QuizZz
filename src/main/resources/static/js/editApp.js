@@ -8,7 +8,7 @@
 			if ($scope.quizId == 0)
 				return;
 
-			$http.get("/quizzes/" + $scope.quizId)
+			$http.get("/api/quizzes/" + $scope.quizId)
 			.then(
 					function(response) {
 						$scope.quizName = response.data.name;
@@ -24,7 +24,7 @@
 			if ($scope.quizId == 0)
 				return;
 
-			$http.get("/quizzes/" + $scope.quizId + "/questions/")
+			$http.get("/api/quizzes/" + $scope.quizId + "/questions/")
 			.then(
 					function(response) {
 						$scope.questions = response.data;
@@ -37,7 +37,7 @@
 		}
 		
 		$scope.saveQuiz = function(quizName, quizDescription) {
-			var url = "/quizzes/";
+			var url = "/api/quizzes/";
 			if ($scope.quizId != 0)
 				url = url + $scope.quizId + "/";
 
@@ -53,7 +53,7 @@
 		}
 		
 		$scope.saveQuestion = function(questionId, questionText) {
-			var url = "/questions";
+			var url = "/api/questions";
 			
 			if (questionId != 0) {
 				url = url + "/" + questionId;
@@ -77,7 +77,7 @@
 			if (questionId == 0)
 				return;
 
-			$http.delete("/questions/" + questionId)
+			$http.delete("/api/questions/" + questionId)
 			.then(
 					function(response) {
 						$scope.refreshQuestions();
