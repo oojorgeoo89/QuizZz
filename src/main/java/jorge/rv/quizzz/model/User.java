@@ -31,9 +31,9 @@ public class User extends BaseModel {
 	@JsonIgnore
 	private String password;
 	
-	@Column(name = "name")
+	@Column(name = "username")
 	@NotEmpty(message = "Please provide your username")
-	private String name;
+	private String username;
 	
 	@Column(name = "active")
 	private int active;
@@ -57,12 +57,12 @@ public class User extends BaseModel {
 		this.password = password;
 	}
 
-	public String getName() {
-		return name;
+	public String getUsername() {
+		return username;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public String getEmail() {

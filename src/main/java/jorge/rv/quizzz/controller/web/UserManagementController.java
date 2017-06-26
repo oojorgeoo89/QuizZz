@@ -5,8 +5,8 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -24,25 +24,21 @@ public class UserManagementController {
 	UserService userService;
 	
 	@RequestMapping(value = "/registration", method = RequestMethod.GET)
-	public String showRegistrationForm(Model model) {
-	    User user = new User();
-	    model.addAttribute("user", user);
-	    
+	public String showRegistrationForm(@ModelAttribute User user) {
 	    return "registration";
 	}
 	
 	@RequestMapping(value = "/registration", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
-	public String save(@Valid User user, BindingResult result, Model model) {
+	public String save(@ModelAttribute @Valid User user, BindingResult result) {
 		
 		try {
 			RestVerifier.verifyModelResult(result);
 			userService.saveUser(user);
 		} catch (ModelVerificationException e) {
-		    model.addAttribute("user", user);
 		    return "registration";
 		} catch (UserAlreadyExistsException e) {
-		    model.addAttribute("user", user);
+			result.rejectValue("email", "label.user.emailInUse");
 		    return "registration";
 		}
 		
