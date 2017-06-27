@@ -1,0 +1,19 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+
+</head>
+<body>
+
+	<div class="container">
+		<div class="starter-template">
+			<h1 th:text="|Error ${errorInfo.code}!|">Error!</h1>
+			<h2 th:text="|Couldn't access ${errorInfo.url}|">Error!</h2>
+			<div th:if="${errorInfo.message} != null">
+				<h2 th:text="|Reason: ${errorInfo.message}|">Error!</h2>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>

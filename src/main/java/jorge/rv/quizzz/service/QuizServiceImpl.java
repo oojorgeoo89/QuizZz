@@ -50,7 +50,7 @@ public class QuizServiceImpl implements QuizService {
 		
 		if (quiz == null) {
 			logger.error("Quiz " + id + " not found");
-			throw new ResourceUnavailableException();
+			throw new ResourceUnavailableException("Quiz " + id + " not found");
 		}
 		
 		return quiz;

@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
 	public User saveUser(User user) throws UserAlreadyExistsException {
 		if (userRepository.findByEmail(user.getEmail()) != null) {
 			logger.error("The mail " + user.getEmail() + " is already in use");
-			throw new UserAlreadyExistsException();
+			throw new UserAlreadyExistsException("The mail " + user.getEmail() + " is already in use");
 		}
 		
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
 		
 		if (user == null) {
 			logger.error("The user " + id + " can't be found");
-			throw new ResourceUnavailableException();
+			throw new ResourceUnavailableException("User " + id + " not found.");
 		}
 		
 		return user;

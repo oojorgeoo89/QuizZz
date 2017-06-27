@@ -20,7 +20,7 @@ public class AccessControlServiceImpl implements AccessControlService {
 	public void checkUserPriviledges(AuthenticatedUser user, UserOwned obj) throws UnauthorizedActionException {
 		if (!canUserModifyQuiz(user, obj)) {
 			logger.error("The user " + user.getId() + " can't modify object owned by " + obj.getUser().getId());
-			throw new UnauthorizedActionException();
+			throw new UnauthorizedActionException("User " + user.getUsername() + " is not allowed to perform this action");
 		}
 	}
 	
@@ -41,7 +41,7 @@ public class AccessControlServiceImpl implements AccessControlService {
 	public void checkUserPriviledges(AuthenticatedUser user, User userToDelete) throws UnauthorizedActionException {
 		if (!user.getUser().equals(userToDelete)) {
 			logger.error("The user " + user.getId() + " can't delete user " + userToDelete.getId());
-			throw new UnauthorizedActionException();
+			throw new UnauthorizedActionException("User " + user.getUsername() + " is not allowed to perform this action");
 		}
 	}
 

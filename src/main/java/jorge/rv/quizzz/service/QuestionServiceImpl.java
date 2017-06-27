@@ -42,7 +42,7 @@ public class QuestionServiceImpl implements QuestionService {
 		
 		if (question == null) {
 			logger.error("Question " + id + " not found");
-			throw new ResourceUnavailableException();
+			throw new ResourceUnavailableException("Question " + id + " not found");
 		}
 		
 		return question;

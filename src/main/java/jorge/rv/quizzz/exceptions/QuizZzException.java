@@ -1,6 +1,6 @@
 package jorge.rv.quizzz.exceptions;
 
-public class QuizZzException extends Exception {
+public class QuizZzException extends RuntimeException {
 	
 	private static final long serialVersionUID = 1L;
 

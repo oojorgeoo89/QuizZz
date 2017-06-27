@@ -31,7 +31,7 @@ public class AnswerServiceImpl implements AnswerService {
 		
 		if (answer == null) {
 			logger.error("Answer " + id + " not found");
-			throw new ResourceUnavailableException();
+			throw new ResourceUnavailableException("Answer " + id + " not found");
 		}
 		
 		return answer;
