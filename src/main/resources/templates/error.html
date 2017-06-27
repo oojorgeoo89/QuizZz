@@ -1,16 +1,25 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+	<title>QuizZz</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+	<link href="http://cdn.jsdelivr.net/webjars/bootstrap/3.3.1/css/bootstrap.min.css"
+          th:href="@{/webjars/bootstrap/3.3.1/css/bootstrap.min.css}" rel="stylesheet" media="screen"/>
+	
+	<link rel="stylesheet" th:href="@{/css/main.css}"
+		href="../../css/main.css" />
 </head>
 <body>
 
+	<div th:replace="fragments/header :: header">...</div>
+	
 	<div class="container">
 		<div class="starter-template">
 			<h1 th:text="|Error ${errorInfo.code}!|">Error!</h1>
-			<h2 th:text="|Couldn't access ${errorInfo.url}|">Error!</h2>
+			<h3 th:text="|Couldn't access ${errorInfo.url}|">Error!</h3>
 			<div th:if="${errorInfo.message} != null">
-				<h2 th:text="|Reason: ${errorInfo.message}|">Error!</h2>
+				<h3 th:text="|Reason: ${errorInfo.message}|">Error!</h3>
 			</div>
 		</div>
 	</div>

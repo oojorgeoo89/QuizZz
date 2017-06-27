@@ -32,7 +32,7 @@ import jorge.rv.quizzz.controller.rest.v1.UserController;
 @ActiveProfiles("test")
 public class LifeCycleTest {
 	private static final String EMAIL_KEY = "email";
-	private static final String USERNAME_KEY = "name";
+	private static final String USERNAME_KEY = "username";
 	private static final String PASSWORD_KEY = "password";
 	private static final String EMAIL_1 = "a@a.com";
 	private static final String USERNAME_1 = "User 1";
