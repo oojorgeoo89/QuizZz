@@ -69,6 +69,7 @@ public class SecurityConfig {
 		protected void configure(HttpSecurity http) throws Exception {
 			http
 			  .formLogin()
+			  	.loginPage("/user/login")
 			  	.defaultSuccessUrl("/", true)
 			  .and()
 			  	.rememberMe()

@@ -9,8 +9,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
 
 import jorge.rv.quizzz.controller.utils.RestVerifier;
+import jorge.rv.quizzz.controller.utils.WebHelper;
 import jorge.rv.quizzz.exceptions.ModelVerificationException;
 import jorge.rv.quizzz.exceptions.UserAlreadyExistsException;
 import jorge.rv.quizzz.model.User;
@@ -24,25 +26,30 @@ public class UserManagementController {
 	UserService userService;
 	
 	@RequestMapping(value = "/registration", method = RequestMethod.GET)
-	public String showRegistrationForm(@ModelAttribute User user) {
-	    return "registration";
+	public ModelAndView showRegistrationForm(@ModelAttribute User user) {
+		return WebHelper.returnView("registration");
 	}
 	
 	@RequestMapping(value = "/registration", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
-	public String save(@ModelAttribute @Valid User user, BindingResult result) {
+	public ModelAndView save(@ModelAttribute @Valid User user, BindingResult result) {
 		
 		try {
 			RestVerifier.verifyModelResult(result);
 			userService.saveUser(user);
 		} catch (ModelVerificationException e) {
-		    return "registration";
+			return WebHelper.returnView("registration");
 		} catch (UserAlreadyExistsException e) {
 			result.rejectValue("email", "label.user.emailInUse");
-		    return "registration";
+			return WebHelper.returnView("registration");
 		}
 		
-		return "home";
+		return WebHelper.returnView("home");
+	}
+	
+	@RequestMapping(value = "/login", method = RequestMethod.GET)
+	public ModelAndView login(@ModelAttribute User user) {
+	    return WebHelper.returnView("login");
 	}
 	
 }

@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<title>QuizZz</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<link href="http://cdn.jsdelivr.net/webjars/bootstrap/3.3.1/css/bootstrap.min.css"
+          th:href="@{/webjars/bootstrap/3.3.1/css/bootstrap.min.css}" rel="stylesheet" media="screen"/>
+	
+	<link rel="stylesheet" th:href="@{/css/main.css}"
+		href="../../css/main.css" />
+</head>
+<body>
+
+	<div th:replace="fragments/header :: header">...</div>
+	
+	<div class="container">
+	
+		<div class="col-sm-4"></div>
+		
+		<div class="col-sm-4">
+			<form name='f' action='/user/login' method='POST' class="form-signin">
+				<h2 th:text="#{label.signin.title}" class="form-signin-heading">Sign In</h2>
+	
+		        <input th:placeholder="#{label.signin.email}" type="email" name="username" class="form-control" required="true" autofocus="true"></input>
+		        <input th:placeholder="#{label.signin.password}" type="password" name="password" class="form-control" required="true"></input>
+		        <div class="checkbox">
+		          <label>
+		            <input th:text="#{label.signin.rememberme}" type="checkbox" name="remember-me"> Remember me </input>
+		          </label>
+		        </div>
+		        
+		        <button th:text="#{label.signin.submit}" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+			</form>
+		</div>
+		
+		<div class="col-sm-4"></div>
+	</div>
+
+</body>
+</html>

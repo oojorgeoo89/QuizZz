@@ -8,7 +8,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
 
+import jorge.rv.quizzz.controller.utils.WebHelper;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Quiz;
@@ -25,8 +27,8 @@ public class Home {
 	AccessControlService accessControlService;
 	
 	@RequestMapping(value = "/", method = RequestMethod.GET)
-	public String home() {
-		return "home";
+	public ModelAndView home() {
+		return WebHelper.returnView("home");
 	}
 	
 	@RequestMapping(value = "/editQuiz", method = RequestMethod.GET)
