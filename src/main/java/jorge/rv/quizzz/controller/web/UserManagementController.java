@@ -48,8 +48,21 @@ public class UserManagementController {
 	}
 	
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
+	@PreAuthorize("permitAll")
 	public ModelAndView login(@ModelAttribute User user) {
 	    return WebHelper.returnView("login");
+	}
+	
+	@RequestMapping(value = "/registration/step1", method = RequestMethod.GET)
+	@PreAuthorize("permitAll")
+	public ModelAndView step1() {
+	    return WebHelper.returnView("registration-step1");
+	}
+	
+	@RequestMapping(value = "/registration/step2", method = RequestMethod.GET)
+	@PreAuthorize("permitAll")
+	public ModelAndView step2() {
+	    return WebHelper.returnView("registration-step2");
 	}
 	
 }

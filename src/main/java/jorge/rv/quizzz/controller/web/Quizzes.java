@@ -18,7 +18,7 @@ import jorge.rv.quizzz.service.AccessControlService;
 import jorge.rv.quizzz.service.QuizService;
 
 @Controller
-public class Home {
+public class Quizzes {
 
 	@Autowired
 	QuizService quizService;
@@ -31,20 +31,20 @@ public class Home {
 		return WebHelper.returnView("home");
 	}
 	
-	@RequestMapping(value = "/editQuiz", method = RequestMethod.GET)
+	@RequestMapping(value = "/createQuiz", method = RequestMethod.GET)
 	@PreAuthorize("isAuthenticated()")
-	public String newQuiz(Map<String, Object> model) {
-		model.put("quizId", 0);
-		return "editQuiz";
+	public ModelAndView newQuiz(Map<String, Object> model) {
+		return WebHelper.returnView("createQuiz");
 	}
 	
 	@RequestMapping(value = "/editQuiz/{quiz_id}", method = RequestMethod.GET)
 	@PreAuthorize("isAuthenticated()")
-	public String editQuiz(Map<String, Object> model, @PathVariable long quiz_id) throws ResourceUnavailableException, UnauthorizedActionException {
+	public ModelAndView editQuiz(@PathVariable long quiz_id) throws ResourceUnavailableException, UnauthorizedActionException {
 			Quiz quiz = quizService.find(quiz_id);
 			accessControlService.checkCurrentUserPriviledges(quiz);
 			
-			model.put("quizId", quiz_id);
-			return "editQuiz";
+			ModelAndView mav = new ModelAndView();
+			mav.addObject("quizId", quiz);
+			return WebHelper.returnView("editQuiz");
 	}
 }
