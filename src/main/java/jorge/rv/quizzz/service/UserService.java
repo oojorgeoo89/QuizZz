@@ -8,7 +8,11 @@ import jorge.rv.quizzz.exceptions.UserAlreadyExistsException;
 import jorge.rv.quizzz.model.User;
 
 public interface UserService extends UserDetailsService {
-	public User saveUser(User user) throws UserAlreadyExistsException;
-	User find(Long id) throws ResourceUnavailableException;
-	public void delete(Long user_id) throws UnauthorizedActionException, ResourceUnavailableException;
+	User saveUser(User user) throws UserAlreadyExistsException;
+	User find(Long id) throws ResourceUnavailableException;;
+	User findByEmail(String email) throws ResourceUnavailableException;
+	User updatePassword(User user, String password) throws ResourceUnavailableException;
+	void delete(Long user_id) throws UnauthorizedActionException, ResourceUnavailableException;
+	User enableUser(User user) throws ResourceUnavailableException;
+	boolean isUserEnabled(User user) throws ResourceUnavailableException;
 }

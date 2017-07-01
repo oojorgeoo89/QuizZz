@@ -161,8 +161,6 @@ public class QuizServiceTests {
 		when(quizRepository.findOne(quiz.getId())).thenReturn(null);
 		
 		service.find(quiz.getId());
-		
-		verify(quizRepository, times(1)).findOne(quiz.getId());
 	}
 	
 	// Update

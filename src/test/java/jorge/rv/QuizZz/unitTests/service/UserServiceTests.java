@@ -1,5 +1,7 @@
 package jorge.rv.QuizZz.unitTests.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -9,7 +11,9 @@ import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import jorge.rv.quizzz.exceptions.QuizZzException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
@@ -32,6 +36,7 @@ public class UserServiceTests {
 	UserRepository userRepository;
 	RoleRepository roleRepository;
 	AccessControlService accessControlService;
+	PasswordEncoder passwordEncoder;
 	
 	User user = new User();
 	
@@ -40,7 +45,9 @@ public class UserServiceTests {
 		userRepository = mock(UserRepository.class);
 		roleRepository = mock(RoleRepository.class);
 		accessControlService = mock(AccessControlService.class);
-		service = new UserServiceImpl(userRepository, roleRepository, accessControlService, new BCryptPasswordEncoder());
+		passwordEncoder = mock(PasswordEncoder.class);
+		
+		service = new UserServiceImpl(userRepository, roleRepository, accessControlService, passwordEncoder);
 		
 		user.setEmail("a@a.com");
 		user.setPassword("Password");
@@ -72,7 +79,7 @@ public class UserServiceTests {
 		when(userRepository.findOne(user.getId())).thenReturn(user);
 		service.delete(user.getId());
 		
-		verify(userRepository, times(1)).delete(user);;
+		verify(userRepository, times(1)).delete(user);
 	}
 	
 	@Test(expected = ResourceUnavailableException.class)
@@ -89,5 +96,36 @@ public class UserServiceTests {
 			.when(accessControlService).checkCurrentUserPriviledges(user);
 		
 		service.delete(user.getId());
+	}
+	
+	@Test(expected = UsernameNotFoundException.class)
+	public void findUserByUsername_shouldntFind() {
+		when(userRepository.findByEmail(user.getEmail())).thenThrow(new UsernameNotFoundException("test"));
+		
+		service.loadUserByUsername("test");
+	}
+	
+	@Test
+	public void findUserByUsername_shouldFind() {
+		when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+		
+		UserDetails localUser = service.loadUserByUsername(user.getEmail());
+		
+		verify(userRepository, times(1)).findByEmail(user.getEmail());
+		assertNotNull(localUser);
+	}
+	
+	@Test
+	public void updatePasswordShouldEncrypt() {
+		final String clearPass = "clearPassword";
+		final String encodedPass = "encodedPassword";
+		when(passwordEncoder.encode(clearPass)).thenReturn(encodedPass);
+		when(userRepository.save(user)).thenReturn(user);
+		
+		User newUser = service.updatePassword(user, clearPass);
+		
+		verify(passwordEncoder, times(1)).encode(clearPass);
+		verify(userRepository, times(1)).save(user);
+		assertEquals(encodedPass, newUser.getPassword());
 	}
 }

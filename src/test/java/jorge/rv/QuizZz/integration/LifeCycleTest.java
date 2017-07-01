@@ -85,28 +85,28 @@ public class LifeCycleTest {
 		 ***********************/
 		
 		// Attempt to create an User with invalid parameters
-		mvc.perform(post(UserController.ROOT_MAPPING)
+		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
 				.param(USERNAME_KEY, USERNAME_1)
 				.param(PASSWORD_KEY, PASSWORD_1)
 				.param(EMAIL_KEY, "aom"))
 					.andExpect(status().isBadRequest());
 		
 		// Create a new User
-		mvc.perform(post(UserController.ROOT_MAPPING)
+		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
 				.param(USERNAME_KEY, USERNAME_1)
 				.param(PASSWORD_KEY, PASSWORD_1)
 				.param(EMAIL_KEY, EMAIL_1))
 					.andExpect(status().isCreated());
 		
 		// Attempt to create a new user with the same parameters
-		mvc.perform(post(UserController.ROOT_MAPPING)
+		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
 				.param(USERNAME_KEY, USERNAME_1)
 				.param(PASSWORD_KEY, PASSWORD_1)
 				.param(EMAIL_KEY, EMAIL_1))
 					.andExpect(status().isConflict());
 		
 		// Create a second User
-		mvc.perform(post(UserController.ROOT_MAPPING)
+		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
 				.param(USERNAME_KEY, USERNAME_2)
 				.param(PASSWORD_KEY, PASSWORD_2)
 				.param(EMAIL_KEY, EMAIL_2))

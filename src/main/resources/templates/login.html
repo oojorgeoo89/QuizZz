@@ -19,11 +19,13 @@
 		<div class="col-sm-4"></div>
 		
 		<div class="col-sm-4">
+			
+			<h2 th:text="#{label.signin.title}" class="form-signin-heading">Sign In</h2>
+			
 			<form name='f' action='/user/login' method='POST' class="form-signin">
-				<h2 th:text="#{label.signin.title}" class="form-signin-heading">Sign In</h2>
-	
 		        <input th:placeholder="#{label.signin.email}" type="email" name="username" class="form-control" required="true" autofocus="true"></input>
 		        <input th:placeholder="#{label.signin.password}" type="password" name="password" class="form-control" required="true"></input>
+		        
 		        <div class="checkbox">
 		          <label>
 		            <input th:text="#{label.signin.rememberme}" type="checkbox" name="remember-me"> Remember me </input>
@@ -32,6 +34,9 @@
 		        
 		        <button th:text="#{label.signin.submit}" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
 			</form>
+			
+			<a href="/user/forgotPassword" tx:text="#{label.signin.forgotpassword}">Forgot my Password</a>
+			
 		</div>
 		
 		<div class="col-sm-4"></div>

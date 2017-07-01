@@ -1,68 +1,80 @@
 package jorge.rv.quizzz.controller.web;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-import jorge.rv.quizzz.controller.utils.RestVerifier;
 import jorge.rv.quizzz.controller.utils.WebHelper;
-import jorge.rv.quizzz.exceptions.ModelVerificationException;
-import jorge.rv.quizzz.exceptions.UserAlreadyExistsException;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.UserService;
+import jorge.rv.quizzz.service.usermanagement.UserManagementService;
 
 @Controller
-@RequestMapping("/user/")
+@RequestMapping("/user")
 public class UserManagementController {
+
+	@Autowired
+	private UserManagementService userManagementService;
 	
 	@Autowired
-	UserService userService;
+	private MessageSource messageSource;
 	
-	@RequestMapping(value = "/registration", method = RequestMethod.GET)
-	public ModelAndView showRegistrationForm(@ModelAttribute User user) {
-		return WebHelper.returnView("registration");
-	}
-	
-	@RequestMapping(value = "/registration", method = RequestMethod.POST)
-	@PreAuthorize("permitAll")
-	public ModelAndView save(@ModelAttribute @Valid User user, BindingResult result) {
-		
-		try {
-			RestVerifier.verifyModelResult(result);
-			userService.saveUser(user);
-		} catch (ModelVerificationException e) {
-			return WebHelper.returnView("registration");
-		} catch (UserAlreadyExistsException e) {
-			result.rejectValue("email", "label.user.emailInUse");
-			return WebHelper.returnView("registration");
-		}
-		
-		return WebHelper.returnView("home");
-	}
+	@Autowired
+	private UserService userService;
 	
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	public ModelAndView login(@ModelAttribute User user) {
-	    return WebHelper.returnView("login");
+		return WebHelper.returnView("login");
 	}
 	
-	@RequestMapping(value = "/registration/step1", method = RequestMethod.GET)
+	@RequestMapping(value = "/forgotPassword", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ModelAndView step1() {
-	    return WebHelper.returnView("registration-step1");
+	public ModelAndView forgotPassword() {
+		return WebHelper.returnView("forgotPassword");
 	}
 	
-	@RequestMapping(value = "/registration/step2", method = RequestMethod.GET)
+	@RequestMapping(value = "/forgotPassword", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
-	public ModelAndView step2() {
-	    return WebHelper.returnView("registration-step2");
+	public ModelAndView forgotPassword(String email) {
+		try {
+			User user = userService.findByEmail(email);
+			userManagementService.ResendPassword(user);
+		} catch (UsernameNotFoundException e) {
+			// Ignoring Username not found to avoid showing whether the user exists or not
+		}
+		
+		ModelAndView mav = new ModelAndView();
+		mav.addObject("header", messageSource.getMessage("label.forgotpassword.success.header", null, null));
+		mav.addObject("subheader", messageSource.getMessage("label.forgotpassword.success.subheader", null, null));
+		return WebHelper.returnView("simplemessage", mav);
 	}
 	
+	@RequestMapping(value = "/{user_id}/resetPassword", method = RequestMethod.GET)
+	@PreAuthorize("permitAll")
+	public ModelAndView resetPassword(@PathVariable Long user_id, String token) {
+		User user = userService.find(user_id);
+		userManagementService.verifyResetPasswordToken(user, token);
+		
+		ModelAndView mav = new ModelAndView();
+		mav.addObject("user", user);
+		mav.addObject("token", token);
+		return WebHelper.returnView("resetPassword", mav);
+	}
+	
+	@RequestMapping(value = "/{user_id}/resetPassword", method = RequestMethod.POST)
+	@PreAuthorize("permitAll")
+	public ModelAndView resetPassword(@PathVariable Long user_id, String token, String password) {
+		User user = userService.find(user_id);
+		userManagementService.updatePassword(user, password);
+		
+		return WebHelper.returnView("login");
+	}
 }

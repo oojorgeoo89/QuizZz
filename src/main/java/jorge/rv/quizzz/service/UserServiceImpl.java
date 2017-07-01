@@ -8,7 +8,6 @@ import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,10 +22,10 @@ import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.repository.RoleRepository;
 import jorge.rv.quizzz.repository.UserRepository;
 
-@Service("userService")
+@Service
 @Transactional
 public class UserServiceImpl implements UserService {
-
+	
 	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 	private UserRepository userRepository;
 	private RoleRepository roleRepository;
@@ -47,21 +46,18 @@ public class UserServiceImpl implements UserService {
 			logger.error("The mail " + user.getEmail() + " is already in use");
 			throw new UserAlreadyExistsException("The mail " + user.getEmail() + " is already in use");
 		}
-		
+
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setActive(1);
+        user.setEnabled(false);
         Role userRole = roleRepository.findByRole(Roles.USER.toString());
         user.setRoles(new HashSet<Role>(Arrays.asList(userRole)));
+        
 		return userRepository.save(user);
 	}
 
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		User user = userRepository.findByEmail(username);
-		if (user == null) {
-			logger.error("The user " + username + " can't be found");
-			throw new UsernameNotFoundException("User " + username + " not found.");
-		}
+	public AuthenticatedUser loadUserByUsername(String username) throws UsernameNotFoundException {
+		User user = findByEmail(username);
         
         return new AuthenticatedUser(user);
 	}
@@ -86,6 +82,39 @@ public class UserServiceImpl implements UserService {
 		userRepository.delete(userToDelete);
 	}
 
+	@Override
+	public User enableUser(User user) {
+		user.setEnabled(true);
+		return userRepository.save(user);
+	}
+
+	@Override
+	public boolean isUserEnabled(User user) {
+		User refreshedUser = refreshUser(user);
+		
+		return refreshedUser.getEnabled();
+	}
 	
+	private User refreshUser(User user) {
+		return find(user.getId());
+	}
+
+	@Override
+	public User findByEmail(String email) throws UsernameNotFoundException {
+		User user = userRepository.findByEmail(email);
+		
+		if (user == null) {
+			logger.error("The user " + email + " can't be found");
+			throw new UsernameNotFoundException("The user " + email + " can't be found");
+		}
+		
+		return user;
+	}
+
+	@Override
+	public User updatePassword(User user, String password) throws ResourceUnavailableException {
+		user.setPassword(passwordEncoder.encode(password));
+		return userRepository.save(user);
+	}
 
 }

@@ -35,8 +35,8 @@ public class User extends BaseModel {
 	@NotEmpty(message = "Please provide your username")
 	private String username;
 	
-	@Column(name = "active")
-	private int active;
+	@Column(name = "enabled")
+	private boolean enabled;
 	
 	@ManyToMany
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -73,12 +73,12 @@ public class User extends BaseModel {
 		this.email = email;
 	}
 
-	public int getActive() {
-		return active;
+	public boolean getEnabled() {
+		return enabled;
 	}
 
-	public void setActive(int active) {
-		this.active = active;
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	public Set<Role> getRoles() {
