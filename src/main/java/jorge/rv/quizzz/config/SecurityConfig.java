@@ -39,28 +39,28 @@ public class SecurityConfig {
 	
 	@Configuration
 	@Order(1)
-	public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+	public static class RestWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 		
 		@Autowired
 		PersistentTokenRepository persistentTokenRepository;
 		
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
-		  http
-		  		.antMatcher("/api/**")   
-		  		.authorizeRequests()
-		  		.anyRequest()
-		  		.permitAll()
-		  	.and()
-		  		.httpBasic()
-		  	.and()
-		  		.csrf()
-		  		.disable();
+			http
+				.antMatcher("/api/**")   
+					.authorizeRequests()
+					.anyRequest()
+					.permitAll()
+				.and()
+					.httpBasic()
+				.and()
+					.csrf()
+					.disable();
 		}
 	}
 	
 	@Configuration
-	public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+	public static class WebWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
 		@Autowired
 		PersistentTokenRepository persistentTokenRepository;
@@ -68,19 +68,19 @@ public class SecurityConfig {
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
 			http
-			  .formLogin()
-			  	.loginPage("/user/login")
-			  	.defaultSuccessUrl("/", true)
-			  .and()
-			  	.rememberMe()
+				.formLogin()
+					.loginPage("/user/login")
+					.defaultSuccessUrl("/", true)
+				.and()
+					.rememberMe()
 					.tokenRepository(persistentTokenRepository)
-			  .and()
-			  	.csrf()
-			  		.disable()
-			  	.logout()
-			  		.logoutSuccessUrl("/")
-			  		.deleteCookies("JSESSIONID")
-			  		.invalidateHttpSession(true) ;
+				.and()
+					.csrf()
+					.disable()
+					.logout()
+					.logoutSuccessUrl("/")
+					.deleteCookies("JSESSIONID")
+					.invalidateHttpSession(true) ;
 		}
 	}
 	

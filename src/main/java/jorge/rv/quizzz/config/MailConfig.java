@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 @Configuration
 public class MailConfig {
+		
 		@Value("${mail.protocol}")
 	    private String protocol;
 	
