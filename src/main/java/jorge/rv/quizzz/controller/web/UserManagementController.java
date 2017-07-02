@@ -73,6 +73,8 @@ public class UserManagementController {
 	@PreAuthorize("permitAll")
 	public ModelAndView resetPassword(@PathVariable Long user_id, String token, String password) {
 		User user = userService.find(user_id);
+		userManagementService.verifyResetPasswordToken(user, token);
+		
 		userManagementService.updatePassword(user, password);
 		
 		return WebHelper.returnView("login");

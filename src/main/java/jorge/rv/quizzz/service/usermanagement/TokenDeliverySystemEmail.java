@@ -1,7 +1,6 @@
 package jorge.rv.quizzz.service.usermanagement;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -12,7 +11,6 @@ import jorge.rv.quizzz.model.TokenType;
 import jorge.rv.quizzz.model.User;
 
 @Service
-@Profile("!test")
 public class TokenDeliverySystemEmail implements TokenDeliverySystem {
 	
 	private static final String BASE_CONFIG_URI = "quizzz.tokens.%s";
@@ -31,7 +29,12 @@ public class TokenDeliverySystemEmail implements TokenDeliverySystem {
 		String base_config = String.format(BASE_CONFIG_URI, tokenType.toString().toLowerCase());
 		String url = String.format(env.getProperty(base_config + ".url"), user.getId(), token.getToken());
 	
-		sendByMail(user, url, base_config);
+		try {
+			sendByMail(user, url, base_config);
+		} catch (Exception e) {
+        	// This runs on a thread so it is too late to notify the user. A re-try mechanism could be put in place.
+        	e.printStackTrace();
+        }
 	}
 
 	private void sendByMail(User user, String url, String base_config) {
@@ -43,7 +46,7 @@ public class TokenDeliverySystemEmail implements TokenDeliverySystem {
         mailMessage.setTo(user.getEmail());
         mailMessage.setFrom("noreply@quizzz.com");
         mailMessage.setSubject(subject);
-        mailMessage.setText(body);
+        mailMessage.setText(body);    
         
         mailSender.send(mailMessage);
 	}

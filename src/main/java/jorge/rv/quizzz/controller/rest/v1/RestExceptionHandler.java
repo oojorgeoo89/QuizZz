@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import jorge.rv.quizzz.controller.utils.ErrorInfo;
+import jorge.rv.quizzz.exceptions.InvalidTokenException;
 import jorge.rv.quizzz.exceptions.ModelVerificationException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
@@ -43,6 +44,13 @@ public class RestExceptionHandler {
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody 
 	public ErrorInfo modelVerificationError(HttpServletRequest req, Exception ex) {
+		return new ErrorInfo(req.getRequestURL().toString(), ex, HttpStatus.BAD_REQUEST.value());
+	}
+	
+	@ExceptionHandler(InvalidTokenException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ResponseBody 
+	public ErrorInfo invalidTokenError(HttpServletRequest req, Exception ex) {
 		return new ErrorInfo(req.getRequestURL().toString(), ex, HttpStatus.BAD_REQUEST.value());
 	}
 }

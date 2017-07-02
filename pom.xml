@@ -60,6 +60,13 @@
 	    	<artifactId>mysql-connector-java</artifactId>
 	  	</dependency>
 	  	
+	  	<dependency>
+		    <groupId>com.icegreen</groupId>
+		    <artifactId>greenmail</artifactId>
+		    <version>1.5.5</version>
+		    <scope>test</scope>
+		</dependency>
+	  	
 	  	<!-- WebJars -->
 		<dependency>
 			<groupId>org.webjars</groupId>

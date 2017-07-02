@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import jorge.rv.quizzz.controller.utils.ErrorInfo;
+import jorge.rv.quizzz.exceptions.InvalidTokenException;
 import jorge.rv.quizzz.exceptions.ModelVerificationException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
@@ -42,12 +43,18 @@ public class WebExceptionHandler {
 		return setModelAndView(req.getRequestURL().toString(), ex, HttpStatus.BAD_REQUEST.value());
 	}
 	
+	@ExceptionHandler(InvalidTokenException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST) 
+	public ModelAndView invalidTokenError(HttpServletRequest req, Exception ex) {
+		return setModelAndView(req.getRequestURL().toString(), ex, HttpStatus.BAD_REQUEST.value());
+	}
+	
 	private ModelAndView setModelAndView(String url, Exception ex, Integer httpCode) {
 		ErrorInfo errorInfo = new ErrorInfo(url, ex, httpCode);
 		ModelAndView mav = new ModelAndView();
 		
 		mav.addObject("errorInfo", errorInfo);
-		mav.setViewName("error");
+		mav.setViewName("errorPage");
 		return mav;
 	}
 }

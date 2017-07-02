@@ -3,17 +3,13 @@ package jorge.rv.quizzz.service.usermanagement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
 
 import jorge.rv.quizzz.model.TokenModel;
 import jorge.rv.quizzz.model.TokenType;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.AccessControlServiceImpl;
 
-@Service
-@Profile("test")
 public class TokenDeliverySystemConsole implements TokenDeliverySystem {
 
 	private static final Logger logger = LoggerFactory.getLogger(AccessControlServiceImpl.class);

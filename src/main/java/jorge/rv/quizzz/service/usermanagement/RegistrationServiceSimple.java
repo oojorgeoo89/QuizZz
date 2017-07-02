@@ -1,14 +1,10 @@
 package jorge.rv.quizzz.service.usermanagement;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
 
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.UserService;
 
-@Service
-@Profile("test")
 public class RegistrationServiceSimple implements RegistrationService {
 
 	@Autowired

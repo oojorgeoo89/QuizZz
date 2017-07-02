@@ -43,7 +43,7 @@ public class TokenDeliverySystemConsoleTests {
 	 * Dummy tests to make sure there are no exceptions thrown.
 	 */
 	@Test
-	public void sendEmailToken() {
+	public void sendEmailRegistrationToken() {
 		String registrationConfigUri = String.format(CONFIG_URI, TokenType.REGISTRATION_MAIL.toString().toLowerCase());
 		doReturn(TOKEN).when(token).getToken();
 		doReturn("dummyUrl/%1$d/%2$s").when(env).getProperty(registrationConfigUri);

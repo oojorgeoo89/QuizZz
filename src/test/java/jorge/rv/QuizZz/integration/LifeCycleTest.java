@@ -1,5 +1,6 @@
 package jorge.rv.QuizZz.integration;
 
+import static org.junit.Assert.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -9,10 +10,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
@@ -21,6 +24,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.ServerSetupTest;
+
+import jorge.rv.QuizZz.integration.utils.MailHelper;
 import jorge.rv.quizzz.QuizZzApplication;
 import jorge.rv.quizzz.controller.rest.v1.AnswerController;
 import jorge.rv.quizzz.controller.rest.v1.QuestionController;
@@ -36,6 +43,7 @@ public class LifeCycleTest {
 	private static final String PASSWORD_KEY = "password";
 	private static final String EMAIL_1 = "a@a.com";
 	private static final String USERNAME_1 = "User 1";
+	private static final String PASSWORD_1_OLD = "Password1_old";
 	private static final String PASSWORD_1 = "Password1";
 	private static final String EMAIL_2 = "b@b.com";
 	private static final String USERNAME_2 = "User 2";
@@ -63,16 +71,28 @@ public class LifeCycleTest {
 	
 	@Autowired
 	private WebApplicationContext context;
-	
 	private MockMvc mvc;
+	private GreenMail smtpServer;
 
+	@Value("${mail.port}")
+	Integer port;
+	
 	@Before
 	public void setup() {
 		mvc = MockMvcBuilders
 				.webAppContextSetup(context)
 				.apply(springSecurity())
 				.build();
+		
+		smtpServer = new GreenMail(ServerSetupTest.SMTP);
+        smtpServer.start();
 	}
+	
+	@After
+    public void tearDown() throws Exception {
+        smtpServer.stop();
+    }
+
 
 	@Test
 	@Sql({"/dbInit.sql"})
@@ -87,17 +107,55 @@ public class LifeCycleTest {
 		// Attempt to create an User with invalid parameters
 		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
 				.param(USERNAME_KEY, USERNAME_1)
-				.param(PASSWORD_KEY, PASSWORD_1)
+				.param(PASSWORD_KEY, PASSWORD_1_OLD)
 				.param(EMAIL_KEY, "aom"))
 					.andExpect(status().isBadRequest());
 		
 		// Create a new User
 		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
 				.param(USERNAME_KEY, USERNAME_1)
-				.param(PASSWORD_KEY, PASSWORD_1)
+				.param(PASSWORD_KEY, PASSWORD_1_OLD)
 				.param(EMAIL_KEY, EMAIL_1))
-					.andExpect(status().isCreated());
+					.andExpect(status().isOk());
 		
+		// Check a mail was received
+        String continueRegistrationUrl = MailHelper.waitForEmailAndExtractUrl(smtpServer);
+        
+        // Activate the user with the wrong token
+        mvc.perform(get(continueRegistrationUrl + "33"))
+					.andExpect(status().isBadRequest());
+        
+        // Activate the user
+        mvc.perform(get(continueRegistrationUrl))
+			.andExpect(status().isOk());
+        
+        // Invoke forgot password with an inexistent mail.
+        // Shouldn't fail, but it shouldn't send an email.
+		mvc.perform(post("/user/forgotPassword")
+				.param(EMAIL_KEY, "invalid@mail.com"))
+					.andExpect(status().isOk());
+		
+		smtpServer.waitForIncomingEmail(1);
+		assertEquals(0, smtpServer.getReceivedMessages().length);
+		
+		// Invoke forgot password with a valid email.
+		mvc.perform(post("/user/forgotPassword")
+				.param(EMAIL_KEY, EMAIL_1))
+					.andExpect(status().isOk());
+		
+		// Wait for email to arrive
+        String resetPasswordUrl = MailHelper.waitForEmailAndExtractUrl(smtpServer);
+        
+        // Reset password with the wrong token
+        mvc.perform(post(resetPasswordUrl + "33")
+				.param(PASSWORD_KEY, PASSWORD_1))
+					.andExpect(status().isBadRequest());
+        
+        // Reset password
+        mvc.perform(post(resetPasswordUrl)
+				.param(PASSWORD_KEY, PASSWORD_1))
+					.andExpect(status().isOk());
+        
 		// Attempt to create a new user with the same parameters
 		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
 				.param(USERNAME_KEY, USERNAME_1)
@@ -110,7 +168,10 @@ public class LifeCycleTest {
 				.param(USERNAME_KEY, USERNAME_2)
 				.param(PASSWORD_KEY, PASSWORD_2)
 				.param(EMAIL_KEY, EMAIL_2))
-					.andExpect(status().isCreated());
+					.andExpect(status().isOk());
+		
+		// Check a mail was received. It will get enabled later in the test
+        String continueRegistrationUser2Url = MailHelper.waitForEmailAndExtractUrl(smtpServer);
 		
 		/***********************
 		 * 
@@ -145,13 +206,24 @@ public class LifeCycleTest {
 				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
 					.andExpect(status().isCreated());
 		
-		// Create a new Quiz with the second user
+		// Try to create a new Quiz with the second user, which is disabled
 		mvc.perform(post(QuizController.ROOT_MAPPING)
 				.param(QUIZ_NAME_KEY, QUIZ_NAME_2)
 				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_2)
 				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
-					.andExpect(status().isCreated());
+					.andExpect(status().isUnauthorized());
 		
+		// Activate the second user
+        mvc.perform(get(continueRegistrationUser2Url))
+			.andExpect(status().isOk());
+		
+        // Create a new Quiz with the second user
+ 		mvc.perform(post(QuizController.ROOT_MAPPING)
+ 				.param(QUIZ_NAME_KEY, QUIZ_NAME_2)
+ 				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_2)
+ 				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+ 					.andExpect(status().isCreated());
+    
 		// List all Quizzes without providing credentials
 		mvc.perform(get(QuizController.ROOT_MAPPING))
 				.andExpect(status().isOk())
