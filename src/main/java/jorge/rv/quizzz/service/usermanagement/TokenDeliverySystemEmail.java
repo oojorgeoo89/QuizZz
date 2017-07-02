@@ -1,7 +1,7 @@
 package jorge.rv.quizzz.service.usermanagement;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.context.MessageSource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -15,19 +15,19 @@ public class TokenDeliverySystemEmail implements TokenDeliverySystem {
 	
 	private static final String BASE_CONFIG_URI = "quizzz.tokens.%s";
 	
-	private Environment env;
+	private MessageSource messageSource;
 	private JavaMailSender mailSender;
 	
 	@Autowired
-	public TokenDeliverySystemEmail(Environment env, JavaMailSender mailSender) {
-		this.env = env;
+	public TokenDeliverySystemEmail(MessageSource messageSource, JavaMailSender mailSender) {
+		this.messageSource = messageSource;
 		this.mailSender = mailSender;
 	}
 
 	@Override
 	public void sendTokenToUser(TokenModel token, User user, TokenType tokenType) {
 		String base_config = String.format(BASE_CONFIG_URI, tokenType.toString().toLowerCase());
-		String url = String.format(env.getProperty(base_config + ".url"), user.getId(), token.getToken());
+		String url = String.format(messageSource.getMessage(base_config + ".url", null, null), user.getId(), token.getToken());
 	
 		try {
 			sendByMail(user, url, base_config);
@@ -38,8 +38,8 @@ public class TokenDeliverySystemEmail implements TokenDeliverySystem {
 	}
 
 	private void sendByMail(User user, String url, String base_config) {
-		String subject = env.getProperty(base_config + ".subject");
-		String body = String.format(env.getProperty(base_config + ".body"), user.getUsername(), url);
+		String subject = messageSource.getMessage(base_config + ".subject", null, null);
+		String body = String.format(messageSource.getMessage(base_config + ".body", null, null), user.getUsername(), url);
 		
 		SimpleMailMessage mailMessage = new SimpleMailMessage();
 		
