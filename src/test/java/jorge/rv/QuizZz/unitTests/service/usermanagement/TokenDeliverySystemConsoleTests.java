@@ -17,7 +17,7 @@ import jorge.rv.quizzz.service.usermanagement.TokenDeliverySystemConsole;
 
 public class TokenDeliverySystemConsoleTests {
 
-	private static final String CONFIG_URI = "quizzz.tokens.urls.";
+	private static final String CONFIG_URI = "quizzz.tokens.%s.url";
 	private static final String TOKEN = "token";
 
 	TokenDeliverySystem tokenDeliverySystem;
@@ -44,21 +44,23 @@ public class TokenDeliverySystemConsoleTests {
 	 */
 	@Test
 	public void sendEmailToken() {
+		String registrationConfigUri = String.format(CONFIG_URI, TokenType.REGISTRATION_MAIL.toString().toLowerCase());
 		doReturn(TOKEN).when(token).getToken();
-		doReturn("dummyUrl/%1$d/%2$s").when(env).getProperty(CONFIG_URI + TokenType.REGISTRATION_MAIL.toString().toLowerCase());
+		doReturn("dummyUrl/%1$d/%2$s").when(env).getProperty(registrationConfigUri);
 		
 		tokenDeliverySystem.sendTokenToUser(token, user, TokenType.REGISTRATION_MAIL);
 		
-		verify(env, times(1)).getProperty(CONFIG_URI + TokenType.REGISTRATION_MAIL.toString().toLowerCase());
+		verify(env, times(1)).getProperty(registrationConfigUri);
 	}
 	
 	@Test
 	public void sendForgotPasswordToken() {
+		String forgotPasswordConfigUri = String.format(CONFIG_URI, TokenType.FORGOT_PASSWORD.toString().toLowerCase());
 		doReturn(TOKEN).when(token).getToken();
-		doReturn("dummyUrl/%1$d/%2$s").when(env).getProperty(CONFIG_URI + TokenType.FORGOT_PASSWORD.toString().toLowerCase());
+		doReturn("dummyUrl/%1$d/%2$s").when(env).getProperty(forgotPasswordConfigUri);
 		
 		tokenDeliverySystem.sendTokenToUser(token, user, TokenType.FORGOT_PASSWORD);
 		
-		verify(env, times(1)).getProperty(CONFIG_URI + TokenType.FORGOT_PASSWORD.toString().toLowerCase());
+		verify(env, times(1)).getProperty(forgotPasswordConfigUri);
 	}
 }
