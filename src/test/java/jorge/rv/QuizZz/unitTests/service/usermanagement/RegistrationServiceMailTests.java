@@ -1,6 +1,8 @@
 package jorge.rv.QuizZz.unitTests.service.usermanagement;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -8,11 +10,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import jorge.rv.quizzz.exceptions.InvalidTokenException;
 import jorge.rv.quizzz.exceptions.UserAlreadyExistsException;
 import jorge.rv.quizzz.model.RegistrationToken;
+import jorge.rv.quizzz.model.TokenModel;
+import jorge.rv.quizzz.model.TokenType;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.UserService;
 import jorge.rv.quizzz.service.usermanagement.RegistrationService;
@@ -47,10 +52,25 @@ public class RegistrationServiceMailTests {
 	}
 	
 	@Test(expected = UserAlreadyExistsException.class)
-	public void startRegistrationWithExistingUser_shouldThrowException() {
+	public void startRegistrationWithRegisteredExistingUser_shouldThrowException() {
 		when(userService.saveUser(user)).thenThrow(new UserAlreadyExistsException());
+		when(userService.findByEmail(user.getEmail())).thenReturn(user);
+		when(userService.isRegistrationCompleted(user)).thenReturn(true);
 		
 		registrationService.startRegistration(user);
+	}
+	
+	@Ignore
+	@Test
+	public void startRegistrationWithExistingUser_shouldThrowException() {
+		when(userService.saveUser(user)).thenThrow(new UserAlreadyExistsException());
+		when(userService.findByEmail(user.getEmail())).thenReturn(user);
+		when(userService.isRegistrationCompleted(user)).thenReturn(false);
+		
+		registrationService.startRegistration(user);
+		
+		verify(tokenService, times(1)).generateTokenForUser(user);
+		verify(tokenDeliverySystem, times(1)).sendTokenToUser(any(TokenModel.class), eq(user), eq(TokenType.REGISTRATION_MAIL));
 	}
 	
 	@Test
@@ -61,6 +81,7 @@ public class RegistrationServiceMailTests {
 		registrationService.startRegistration(user);
 		
 		verify(tokenService, times(1)).generateTokenForUser(user);
+		verify(tokenDeliverySystem, times(1)).sendTokenToUser(any(TokenModel.class), eq(user), eq(TokenType.REGISTRATION_MAIL));
 	}
 	
 	@Test(expected = InvalidTokenException.class)
@@ -74,13 +95,13 @@ public class RegistrationServiceMailTests {
 	public void continueRegistration_shouldEnableUserAndDestroyToken() {
 		registrationService.continueRegistration(user, TOKEN);
 		
-		verify(userService, times(1)).enableUser(user);
+		verify(userService, times(1)).setRegistrationCompleted(user);
 		verify(tokenService, times(1)).invalidateToken(TOKEN);
 	}
 	
 	@Test
 	public void registrationIsCompleted() {
-		when(userService.isUserEnabled(user)).thenReturn(true);
+		when(userService.isRegistrationCompleted(user)).thenReturn(true);
 		
 		Boolean isCompleted = registrationService.isRegistrationCompleted(user);
 		
@@ -89,7 +110,7 @@ public class RegistrationServiceMailTests {
 
 	@Test
 	public void registrationIsNotCompleted() {
-		when(userService.isUserEnabled(user)).thenReturn(false);
+		when(userService.isRegistrationCompleted(user)).thenReturn(false);
 		
 		Boolean isCompleted = registrationService.isRegistrationCompleted(user);
 		

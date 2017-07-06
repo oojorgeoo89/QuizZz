@@ -45,9 +45,9 @@ public class UserController {
 	public ResponseEntity<?> signUp(@ModelAttribute @Valid User user, BindingResult result) {
 		
 		RestVerifier.verifyModelResult(result);
-		registrationService.startRegistration(user);
+		User newUser = registrationService.startRegistration(user);
 		
-		if (!registrationService.isRegistrationCompleted(user)) {
+		if (!registrationService.isRegistrationCompleted(newUser)) {
 			return ResponseEntity.status(HttpStatus.OK).build();
 		} else {
 			return ResponseEntity.status(HttpStatus.CREATED).build();

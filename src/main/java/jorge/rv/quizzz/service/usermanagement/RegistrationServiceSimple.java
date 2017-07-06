@@ -11,17 +11,19 @@ public class RegistrationServiceSimple implements RegistrationService {
 	private UserService userService;
 	
 	@Override
-	public void startRegistration(User user) {
+	public User startRegistration(User user) {
 		User newUser = userService.saveUser(user);
-		userService.enableUser(newUser);
+		userService.setRegistrationCompleted(newUser);
+		
+		return newUser;
 	}
 
 	@Override
-	public void continueRegistration(User user, String token) { }
+	public User continueRegistration(User user, String token) { return null; }
 
 	@Override
 	public boolean isRegistrationCompleted(User user) {	
-		return userService.isUserEnabled(user);
+		return userService.isRegistrationCompleted(user);
 	}
 
 }

@@ -3,6 +3,7 @@ package jorge.rv.quizzz.service.usermanagement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jorge.rv.quizzz.exceptions.UserAlreadyExistsException;
 import jorge.rv.quizzz.model.RegistrationToken;
 import jorge.rv.quizzz.model.TokenType;
 import jorge.rv.quizzz.model.User;
@@ -25,25 +26,37 @@ public class RegistrationServiceMail implements RegistrationService {
 	}
 
 	@Override
-	public void startRegistration(User user) {
-		User newUser = userService.saveUser(user);
+	public User startRegistration(User user) {
+		User newUser;
+		
+		try {
+			newUser = userService.saveUser(user);
+		} catch (UserAlreadyExistsException e) {
+			newUser = userService.findByEmail(user.getEmail());
+			if (userService.isRegistrationCompleted(newUser)) {
+				throw e;
+			}
+		}
 		
 		RegistrationToken mailToken = tokenService.generateTokenForUser(newUser);
-		
 		tokenDeliveryService.sendTokenToUser(mailToken, newUser, TokenType.REGISTRATION_MAIL);
+		
+		return newUser;
 	}
 
 	@Override
-	public void continueRegistration(User user, String token) {
+	public User continueRegistration(User user, String token) {
 		tokenService.validateTokenForUser(user, token);
 		
-		userService.enableUser(user);
+		userService.setRegistrationCompleted(user);
 		tokenService.invalidateToken(token);
+		
+		return user;
 	}
 
 	@Override
 	public boolean isRegistrationCompleted(User user) {
-		return userService.isUserEnabled(user);
+		return userService.isRegistrationCompleted(user);
 	}
 
 }

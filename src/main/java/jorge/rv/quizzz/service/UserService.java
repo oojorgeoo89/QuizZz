@@ -13,6 +13,7 @@ public interface UserService extends UserDetailsService {
 	User findByEmail(String email) throws ResourceUnavailableException;
 	User updatePassword(User user, String password) throws ResourceUnavailableException;
 	void delete(Long user_id) throws UnauthorizedActionException, ResourceUnavailableException;
-	User enableUser(User user) throws ResourceUnavailableException;
-	boolean isUserEnabled(User user) throws ResourceUnavailableException;
+	
+	User setRegistrationCompleted(User user) throws ResourceUnavailableException;
+	boolean isRegistrationCompleted(User user) throws ResourceUnavailableException;
 }

@@ -4,7 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "email_registration_tokens")
+@Table(name = "registration_tokens")
 public class RegistrationToken extends TokenModel {
 
 }

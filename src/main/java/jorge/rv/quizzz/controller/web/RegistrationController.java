@@ -43,10 +43,11 @@ public class RegistrationController {
 	@RequestMapping(value = "/registration", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
 	public ModelAndView signUp(@ModelAttribute @Valid User user, BindingResult result) {
+		User newUser;
 		
 		try {
 			RestVerifier.verifyModelResult(result);
-			registrationService.startRegistration(user);
+			newUser = registrationService.startRegistration(user);
 		} catch (ModelVerificationException e) {
 			return WebHelper.returnView("registration");
 		} catch (UserAlreadyExistsException e) {
@@ -54,7 +55,7 @@ public class RegistrationController {
 			return WebHelper.returnView("registration");
 		}
 		
-		return registrationStepView(user);
+		return registrationStepView(newUser);
 	}
 	
 	@RequestMapping(value = "/{user_id}/continueRegistration", method = RequestMethod.GET)

@@ -83,13 +83,13 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User enableUser(User user) {
+	public User setRegistrationCompleted(User user) {
 		user.setEnabled(true);
 		return userRepository.save(user);
 	}
 
 	@Override
-	public boolean isUserEnabled(User user) {
+	public boolean isRegistrationCompleted(User user) {
 		User refreshedUser = refreshUser(user);
 		
 		return refreshedUser.getEnabled();
