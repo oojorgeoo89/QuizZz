@@ -3,7 +3,6 @@ package jorge.rv.quizzz.controller.web;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import jorge.rv.quizzz.controller.utils.WebHelper;
+import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.UserService;
 import jorge.rv.quizzz.service.usermanagement.UserManagementService;
@@ -47,7 +47,7 @@ public class UserManagementController {
 		try {
 			User user = userService.findByEmail(email);
 			userManagementService.ResendPassword(user);
-		} catch (UsernameNotFoundException e) {
+		} catch (ResourceUnavailableException e) {
 			// Ignoring Username not found to avoid showing whether the user exists or not
 		}
 		

@@ -25,7 +25,7 @@ public class User extends BaseModel {
 	@NotEmpty(message = "Please provide an email")
 	private String email;
 	
-	@Column(name = "password")
+	@Column(name = "password", unique = true)
 	@Length(min = 5, message = "Your password must have at least 5 characters")
 	@NotEmpty(message = "Please provide your password")
 	@JsonIgnore

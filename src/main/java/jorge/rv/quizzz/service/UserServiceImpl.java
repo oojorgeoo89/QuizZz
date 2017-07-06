@@ -56,12 +56,38 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	/*
+	 * Look up by both Email and Username. Throw exception if it wasn't in either.
+	 * TODO: Join Username and Email into one JPQL
+	 */
 	public AuthenticatedUser loadUserByUsername(String username) throws UsernameNotFoundException {
-		User user = findByEmail(username);
-        
+		User user;
+		
+		try {
+			user = findByUsername(username);
+		} catch (ResourceUnavailableException e) {
+			try {
+				user = findByEmail(username);
+			} catch (ResourceUnavailableException e2) {
+				throw new UsernameNotFoundException(username + " couldn't be resolved to any user");
+			}
+		}
+		
         return new AuthenticatedUser(user);
 	}
 	
+	@Override
+	public User findByUsername(String username) throws ResourceUnavailableException {
+		User user = userRepository.findByUsername(username);
+		
+		if (user == null) {
+			logger.error("The user " + username + " doesn't exist");
+			throw new ResourceUnavailableException("The user " + username + " doesn't exist");
+		}
+		
+		return user;
+	}
+
 	@Override
 	public User find(Long id) throws ResourceUnavailableException {
 		User user = userRepository.findOne(id);
@@ -100,12 +126,12 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User findByEmail(String email) throws UsernameNotFoundException {
+	public User findByEmail(String email) throws ResourceUnavailableException {
 		User user = userRepository.findByEmail(email);
 		
 		if (user == null) {
-			logger.error("The user " + email + " can't be found");
-			throw new UsernameNotFoundException("The user " + email + " can't be found");
+			logger.error("The mail " + email + " can't be found");
+			throw new ResourceUnavailableException("The mail " + email + " can't be found");
 		}
 		
 		return user;

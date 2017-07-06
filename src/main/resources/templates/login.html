@@ -23,7 +23,7 @@
 			<h2 th:text="#{label.signin.title}" class="form-signin-heading">Sign In</h2>
 			
 			<form name='f' action='/user/login' method='POST' class="form-signin">
-		        <input th:placeholder="#{label.signin.email}" type="email" name="username" class="form-control" required="true" autofocus="true"></input>
+		        <input th:placeholder="#{label.signin.email}" name="username" class="form-control" required="true" autofocus="true"></input>
 		        <input th:placeholder="#{label.signin.password}" type="password" name="password" class="form-control" required="true"></input>
 		        
 		        <div class="checkbox">
