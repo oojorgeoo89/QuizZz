@@ -19,35 +19,25 @@
 		<div class="col-sm-2"></div>
 		
 		<div class="col-sm-8">
-			<h1 th:text="#{label.registration.title}" class="form-signin">form</h1>
+		
+			<h2 th:text="#{label.newquiz.pagetitle}" class="form-signin-heading text-center">New Quiz</h2>
 			<br/>
-			<form action="/user/registration" th:object="${user}" method="POST" enctype="utf8">
-			    <div>
-			    	<p th:each="error: ${#fields.errors('username')}" th:text="${error}">Validation error</p>
-			        <label th:text="#{label.user.username}" >username</label><br/>
-			        <input th:field="*{username}" class="form-control" required="true" autofocus="true" />
-			    </div>
-			    <div>
-			    	<p th:each="error: ${#fields.errors('email')}" th:text="${error}">Validation error</p>
-			        <label th:text="#{label.user.email}" >email</label>
-			        <input th:field="*{email}" type="email" class="form-control" required="true"/>
-			    </div>
-			    <div>
-			    	<p th:each="error: ${#fields.errors('password')}" th:text="${error}">Validation error</p>
-			        <label th:text="#{label.user.password}">password</label>
-			        <input th:field="*{password}" type="password" class="form-control" required="true"/>
-			    </div>
-			    <div>
-			        <label th:text="#{label.user.confirmPassword}">confirm</label>
-			        <input type="password" class="form-control" required="true" />
-			    </div>
-			    <br/>
-			    <button th:text="#{label.registration.submit}" type="submit" class="btn btn-lg btn-primary btn-block">submit</button>
-			</form>
-		</div>
-	
-		<div class="col-sm-2"></div>
 			
+			<form name='f' action='/createQuiz' method='POST' class="form-signin">	
+				<div class="form-group">
+					<label th:text="#{label.newquiz.title}">Title</label>
+			        <input th:placeholder="#{label.newquiz.title.placeholder}" name="name" class="form-control" required="true" autofocus="true" />
+			        <br/>
+			        <label th:text="#{label.newquiz.description}">Description</label>
+			        <textarea th:placeholder="#{label.newquiz.description.placeholder}" name="description" class="form-control" rows="5" > </textarea>
+			        <br/>
+			        <button th:text="#{label.newquiz.submit}" class="btn btn-lg btn-primary btn-block" type="submit">Send</button>
+		        </div>
+			</form>
+			
+		</div>
+		
+		<div class="col-sm-2"></div>
 	</div>
 	 
 	
