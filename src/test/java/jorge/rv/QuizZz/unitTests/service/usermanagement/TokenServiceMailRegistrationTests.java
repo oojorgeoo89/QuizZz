@@ -19,10 +19,10 @@ import org.mockito.stubbing.Answer;
 
 import jorge.rv.quizzz.exceptions.InvalidTokenException;
 import jorge.rv.quizzz.model.ForgotPasswordToken;
-import jorge.rv.quizzz.model.MailRegistrationToken;
+import jorge.rv.quizzz.model.RegistrationToken;
 import jorge.rv.quizzz.model.User;
-import jorge.rv.quizzz.repository.MailRegistrationTokenRepository;
-import jorge.rv.quizzz.service.usermanagement.TokenServiceMailRegistration;
+import jorge.rv.quizzz.repository.RegistrationTokenRepository;
+import jorge.rv.quizzz.service.usermanagement.TokenServiceRegistration;
 import jorge.rv.quizzz.service.usermanagement.utils.DateHelper;
 import jorge.rv.quizzz.service.usermanagement.utils.TokenGenerator;
 
@@ -34,29 +34,29 @@ public class TokenServiceMailRegistrationTests {
 	private static final Date EXPIRATION_DATE = new Date(123456);
 
 
-	TokenServiceMailRegistration tokenService;
+	TokenServiceRegistration tokenService;
 	
 	//Mocks 
-	MailRegistrationTokenRepository tokenRepository;
+	RegistrationTokenRepository tokenRepository;
 	TokenGenerator tokenGenerator;
 	DateHelper dateHelper;
 	
 	// Models
 	User user = new User();
-	MailRegistrationToken token;
+	RegistrationToken token;
 	
 	@Before
 	public void before() {
-		tokenRepository = mock(MailRegistrationTokenRepository.class);
+		tokenRepository = mock(RegistrationTokenRepository.class);
 		tokenGenerator = mock(TokenGenerator.class);
 		dateHelper = mock(DateHelper.class);
 		
-		tokenService = new TokenServiceMailRegistration(tokenRepository, tokenGenerator);
+		tokenService = new TokenServiceRegistration(tokenRepository, tokenGenerator);
 		tokenService.setDateHelper(dateHelper);
 		
 		user.setEmail("a@a.com");
 		user.setPassword("Password");
-		token = new MailRegistrationToken();
+		token = new RegistrationToken();
 	}
 	
 	@Test
@@ -65,15 +65,15 @@ public class TokenServiceMailRegistrationTests {
 		when(dateHelper.getExpirationDate(any(Date.class), eq(EXPIRATION_DELAY))).thenReturn(EXPIRATION_DATE);
 		tokenService.setExpirationTimeInMinutes(EXPIRATION_DELAY);
 		
-		when(tokenRepository.save((MailRegistrationToken) any())).thenAnswer(new Answer<MailRegistrationToken>() {
+		when(tokenRepository.save((RegistrationToken) any())).thenAnswer(new Answer<RegistrationToken>() {
 		    @Override
-		    public MailRegistrationToken answer(InvocationOnMock invocation) throws Throwable {
+		    public RegistrationToken answer(InvocationOnMock invocation) throws Throwable {
 		      Object[] args = invocation.getArguments();
-		      return (MailRegistrationToken) args[0];
+		      return (RegistrationToken) args[0];
 		    }
 		  });
 		
-		MailRegistrationToken token = tokenService.generateTokenForUser(user);
+		RegistrationToken token = tokenService.generateTokenForUser(user);
 		
 		assertEquals(token.getToken(), TOKEN);
 		assertEquals(token.getUser(), user);

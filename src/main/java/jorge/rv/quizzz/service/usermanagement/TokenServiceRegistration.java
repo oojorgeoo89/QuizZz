@@ -4,24 +4,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import jorge.rv.quizzz.model.MailRegistrationToken;
-import jorge.rv.quizzz.repository.MailRegistrationTokenRepository;
+import jorge.rv.quizzz.model.RegistrationToken;
+import jorge.rv.quizzz.repository.RegistrationTokenRepository;
 import jorge.rv.quizzz.service.usermanagement.utils.TokenGenerator;
 
 @Service
-public class TokenServiceMailRegistration extends TokenServiceAbs<MailRegistrationToken> {
+public class TokenServiceRegistration extends TokenServiceAbs<RegistrationToken> {
 	
 	@Value("${quizzz.tokens.registration_mail.timeout}")
 	private Integer expirationTimeInMinutes = 86400;
 
 	@Autowired
-	public TokenServiceMailRegistration(MailRegistrationTokenRepository mailTokenRepository, TokenGenerator tokenGenerator) {
+	public TokenServiceRegistration(RegistrationTokenRepository mailTokenRepository, TokenGenerator tokenGenerator) {
 		super(tokenGenerator, mailTokenRepository);
 	}
 
 	@Override
-	protected MailRegistrationToken create() {
-		return new MailRegistrationToken();
+	protected RegistrationToken create() {
+		return new RegistrationToken();
 	}
 
 	@Override

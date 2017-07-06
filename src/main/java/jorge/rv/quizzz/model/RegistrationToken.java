@@ -5,6 +5,6 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "email_registration_tokens")
-public class MailRegistrationToken extends TokenModel {
+public class RegistrationToken extends TokenModel {
 
 }

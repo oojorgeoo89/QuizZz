@@ -12,13 +12,13 @@ import org.junit.Test;
 
 import jorge.rv.quizzz.exceptions.InvalidTokenException;
 import jorge.rv.quizzz.exceptions.UserAlreadyExistsException;
-import jorge.rv.quizzz.model.MailRegistrationToken;
+import jorge.rv.quizzz.model.RegistrationToken;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.UserService;
 import jorge.rv.quizzz.service.usermanagement.RegistrationService;
 import jorge.rv.quizzz.service.usermanagement.RegistrationServiceMail;
 import jorge.rv.quizzz.service.usermanagement.TokenDeliverySystem;
-import jorge.rv.quizzz.service.usermanagement.TokenServiceMailRegistration;
+import jorge.rv.quizzz.service.usermanagement.TokenServiceRegistration;
 
 public class RegistrationServiceMailTests {
 	
@@ -28,7 +28,7 @@ public class RegistrationServiceMailTests {
 	
 	// Mocks
 	UserService userService;
-	TokenServiceMailRegistration tokenService;
+	TokenServiceRegistration tokenService;
 	TokenDeliverySystem tokenDeliverySystem;
 	
 	// Models
@@ -37,7 +37,7 @@ public class RegistrationServiceMailTests {
 	@Before
 	public void before() {
 		userService = mock(UserService.class);
-		tokenService = mock(TokenServiceMailRegistration.class);
+		tokenService = mock(TokenServiceRegistration.class);
 		tokenDeliverySystem = mock(TokenDeliverySystem.class);
 		
 		registrationService = new RegistrationServiceMail(userService, tokenService, tokenDeliverySystem);
@@ -56,7 +56,7 @@ public class RegistrationServiceMailTests {
 	@Test
 	public void startRegistrationWithNewUser_shouldCreateToken() {
 		when(userService.saveUser(user)).thenReturn(user);
-		when(tokenService.generateTokenForUser(user)).thenReturn(new MailRegistrationToken());
+		when(tokenService.generateTokenForUser(user)).thenReturn(new RegistrationToken());
 		
 		registrationService.startRegistration(user);
 		
