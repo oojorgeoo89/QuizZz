@@ -1,5 +1,7 @@
 package jorge.rv.quizzz.model;
 
+import java.util.Date;
+
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
@@ -12,6 +14,8 @@ public abstract class TokenModel extends BaseModel {
 	
 	@OneToOne
 	User user;
+	
+	Date expirationDate;
 	
 	public String getToken() {
 		return token;
@@ -29,8 +33,18 @@ public abstract class TokenModel extends BaseModel {
 		this.user = user;
 	}
 	
+
+	public Date getExpirationDate() {
+		return expirationDate;
+	}
+
+	public void setExpirationDate(Date expirationDate) {
+		this.expirationDate = expirationDate;
+	}
+	
 	@Override
 	public String toString() {
 		return getToken();
 	}
+	
 }

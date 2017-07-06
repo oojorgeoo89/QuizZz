@@ -1,19 +1,35 @@
 package jorge.rv.quizzz.service.usermanagement;
 
+import java.util.Date;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import jorge.rv.quizzz.exceptions.InvalidTokenException;
 import jorge.rv.quizzz.model.TokenModel;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.repository.TokenRepository;
+import jorge.rv.quizzz.service.usermanagement.utils.DateHelper;
 import jorge.rv.quizzz.service.usermanagement.utils.TokenGenerator;
 
+@Transactional
 public abstract class TokenServiceAbs<T extends TokenModel> implements TokenService<T> {
 
 	private TokenRepository<T> tokenRepo;
 	private TokenGenerator tokenGenerator;
 	
+	@Autowired
+	private DateHelper dateHelper;
+
+	@Autowired
 	public TokenServiceAbs(TokenGenerator tokenGenerator, TokenRepository<T> tokenRepo) {
 		this.tokenRepo = tokenRepo;
 		this.tokenGenerator = tokenGenerator;
+	}
+	
+	public void setDateHelper(DateHelper dateHelper) {
+		this.dateHelper = dateHelper;
 	}
 	
 	@Override
@@ -23,6 +39,7 @@ public abstract class TokenServiceAbs<T extends TokenModel> implements TokenServ
 		
 		tokenModel.setToken(token);
 		tokenModel.setUser(user);
+		tokenModel.setExpirationDate(dateHelper.getExpirationDate(dateHelper.getCurrentDate(), getExpirationTimeInMinutes()));
 		
 		return save(tokenModel);
 	}
@@ -44,6 +61,11 @@ public abstract class TokenServiceAbs<T extends TokenModel> implements TokenServ
 	public void invalidateToken(String token) {
 		T tokenModel = findByToken(token);
 		delete(tokenModel);
+	}
+	
+	@Override
+	public void invalidateExpiredTokensPreviousTo(Date date) {
+		tokenRepo.deletePreviousTo(date);
 	}
 	
 	/*
@@ -68,5 +90,6 @@ public abstract class TokenServiceAbs<T extends TokenModel> implements TokenServ
 	}
 	
 	protected abstract T create();
+	protected abstract int getExpirationTimeInMinutes();
 
 }
