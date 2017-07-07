@@ -11,17 +11,17 @@
 		<div ng-controller="HomeCtrl">
 			
 			<div>
-				<h1>Welcome to QuizZz!</h1>
+				<h1 th:text="#{label.home.welcome}">Welcome to QuizZz!</h1>
 				<br/>
 			</div>
 				
 			<table class="table table-hover" align="center">
 				<thead>
 					<tr>
-						<th width="70%">Quiz</th>
-						<th>Questions</th>
-						<th>Times played</th>
-						<th>Play!</th>
+						<th th:text="#{label.home.maintable.headers.quiz}" width="70%">Quiz</th>
+						<th th:text="#{label.home.maintable.headers.questions}">Questions</th>
+						<th th:text="#{label.home.maintable.headers.times}">Times played</th>
+						<th th:text="#{label.home.maintable.headers.play}">Play!</th>
 					</tr>
 				</thead>
 				<tbody>				
@@ -44,6 +44,11 @@
 					</tr>
 				</tbody>
 			</table>
+			
+			<div class="text-center">
+				<button th:text="#{label.home.maintable.loadmore}" class="btn" ng-click="loadNextPage()" ng-show="pagination.morePagesAvailable">Load more...</button>
+			</div>
+			
 		</div>
 		
 

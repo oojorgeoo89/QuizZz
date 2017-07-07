@@ -1,21 +1,41 @@
 (function() {
 
-  var app = angular.module("homeApp", []);
+	var app = angular.module("homeApp", []);
 
-  var homeCtrl = function($scope, $http) {
+	var homeCtrl = function($scope, $http) {	  
+	
+		//$scope.quizzes = [];
+		$scope.pagination = {
+			pageNumber: 0,
+			morePagesAvailable: true
+		};
+		
+		$scope.loadNextPage = function(quizName, quizDescription) {
+		
+			if ($scope.pagination.morePagesAvailable) {
+				$http.get("/api/quizzes?page=" + $scope.pagination.pageNumber)
+					.then(
+						function(response) {
+							if ($scope.quizzes == undefined) {
+								$scope.quizzes = response.data.content;
+							} else {
+								$scope.quizzes = $scope.quizzes.concat(response.data.content);
+							}
+							
+							$scope.pagination.morePagesAvailable = !response.data.last;
+							$scope.pagination.pageNumber++;
+						}, 
+						function(reason) {
+							$scope.error = "Could not fetch the data.";
+						}
+					);
+			}
+		};
+	
+		$scope.loadNextPage();
+		
+	};
 
-    $http.get("/api/quizzes")
-    	.then(
-        	function(response) {
-        		$scope.quizzes = response.data.content;
-        	}, 
-        	function(reason) {
-        		$scope.error = "Could not fetch the data.";
-        	}
-    	);
-
-  };
-  
-  app.controller("HomeCtrl", ["$scope", "$http", homeCtrl]);
+	app.controller("HomeCtrl", ["$scope", "$http", homeCtrl]);
 
 }());
