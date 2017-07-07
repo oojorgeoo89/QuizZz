@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-import jorge.rv.quizzz.controller.utils.WebHelper;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Quiz;
@@ -18,7 +17,7 @@ import jorge.rv.quizzz.service.AccessControlService;
 import jorge.rv.quizzz.service.QuizService;
 
 @Controller
-public class Quizzes {
+public class QuizzController {
 
 	@Autowired
 	QuizService quizService;
@@ -27,14 +26,14 @@ public class Quizzes {
 	AccessControlService accessControlService;
 	
 	@RequestMapping(value = "/", method = RequestMethod.GET)
-	public ModelAndView home() {
-		return WebHelper.returnView("home");
+	public String home() {
+		return "home";
 	}
 	
 	@RequestMapping(value = "/createQuiz", method = RequestMethod.GET)
 	@PreAuthorize("isAuthenticated()")
-	public ModelAndView newQuiz(Map<String, Object> model) {
-		return WebHelper.returnView("createQuiz");
+	public String newQuiz(Map<String, Object> model) {
+		return "createQuiz";
 	}
 	
 	@RequestMapping(value = "/editQuiz/{quiz_id}", method = RequestMethod.GET)
@@ -44,7 +43,9 @@ public class Quizzes {
 			accessControlService.checkCurrentUserPriviledges(quiz);
 			
 			ModelAndView mav = new ModelAndView();
-			mav.addObject("quizId", quiz);
-			return WebHelper.returnView("editQuiz");
+			mav.addObject("quiz", quiz);
+			mav.setViewName("editQuiz");
+
+			return mav;
 	}
 }

@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-import jorge.rv.quizzz.controller.utils.WebHelper;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.UserService;
@@ -31,14 +30,14 @@ public class UserManagementController {
 	
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ModelAndView login(@ModelAttribute User user) {
-		return WebHelper.returnView("login");
+	public String login(@ModelAttribute User user) {
+		return "login";
 	}
 	
 	@RequestMapping(value = "/forgotPassword", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ModelAndView forgotPassword() {
-		return WebHelper.returnView("forgotPassword");
+	public String forgotPassword() {
+		return "forgotPassword";
 	}
 	
 	@RequestMapping(value = "/forgotPassword", method = RequestMethod.POST)
@@ -54,7 +53,9 @@ public class UserManagementController {
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("header", messageSource.getMessage("label.forgotpassword.success.header", null, null));
 		mav.addObject("subheader", messageSource.getMessage("label.forgotpassword.success.subheader", null, null));
-		return WebHelper.returnView("simplemessage", mav);
+		mav.setViewName("simplemessage");
+
+		return mav;
 	}
 	
 	@RequestMapping(value = "/{user_id}/resetPassword", method = RequestMethod.GET)
@@ -66,17 +67,19 @@ public class UserManagementController {
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("user", user);
 		mav.addObject("token", token);
-		return WebHelper.returnView("resetPassword", mav);
+		mav.setViewName("resetPassword");
+		
+		return mav;
 	}
 	
 	@RequestMapping(value = "/{user_id}/resetPassword", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
-	public ModelAndView resetPassword(@PathVariable Long user_id, String token, String password) {
+	public String resetPassword(@PathVariable Long user_id, String token, String password) {
 		User user = userService.find(user_id);
 		userManagementService.verifyResetPasswordToken(user, token);
 		
 		userManagementService.updatePassword(user, password);
 		
-		return WebHelper.returnView("login");
+		return "login";
 	}
 }

@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import jorge.rv.quizzz.controller.utils.RestVerifier;
-import jorge.rv.quizzz.controller.utils.WebHelper;
 import jorge.rv.quizzz.exceptions.ModelVerificationException;
 import jorge.rv.quizzz.exceptions.UserAlreadyExistsException;
 import jorge.rv.quizzz.model.User;
@@ -36,26 +35,29 @@ public class RegistrationController {
 	
 	@RequestMapping(value = "/registration", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
-	public ModelAndView showRegistrationForm(@ModelAttribute User user) {
-		return WebHelper.returnView("registration");
+	public String showRegistrationForm(@ModelAttribute User user) {
+		return "registration";
 	}
 	
 	@RequestMapping(value = "/registration", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
 	public ModelAndView signUp(@ModelAttribute @Valid User user, BindingResult result) {
 		User newUser;
+		ModelAndView mav = new ModelAndView();
 		
 		try {
 			RestVerifier.verifyModelResult(result);
 			newUser = registrationService.startRegistration(user);
 		} catch (ModelVerificationException e) {
-			return WebHelper.returnView("registration");
+			mav.setViewName("registration");
+			return mav;
 		} catch (UserAlreadyExistsException e) {
 			result.rejectValue("email", "label.user.emailInUse");
-			return WebHelper.returnView("registration");
+			mav.setViewName("registration");
+			return mav;
 		}
 		
-		return registrationStepView(newUser);
+		return registrationStepView(newUser, mav);
 	}
 	
 	@RequestMapping(value = "/{user_id}/continueRegistration", method = RequestMethod.GET)
@@ -64,19 +66,22 @@ public class RegistrationController {
 		User user = userService.find(user_id);
 		registrationService.continueRegistration(user, token);
 		
-		return registrationStepView(user);
+		ModelAndView mav = new ModelAndView();
+		return registrationStepView(user, mav);
 	}
 	
-	private ModelAndView registrationStepView(User user) {
-		ModelAndView mav = new ModelAndView();
+	private ModelAndView registrationStepView(User user, ModelAndView mav) {
+		
 		if (!registrationService.isRegistrationCompleted(user)) {
 			mav.addObject("header", messageSource.getMessage("label.registration.step1.header", null, null));
 			mav.addObject("subheader", messageSource.getMessage("label.registration.step1.subheader", null, null));
-			return WebHelper.returnView("simplemessage", mav);
+			mav.setViewName("simplemessage");
 		} else {
 			mav.addObject("header", messageSource.getMessage("label.registration.step2.header", null, null));
 			mav.addObject("subheader", messageSource.getMessage("label.registration.step2.subheader", null, null));
-			return WebHelper.returnView("simplemessage", mav);
+			mav.setViewName("simplemessage");
 		}
+		
+		return mav;
 	}
 }
