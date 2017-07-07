@@ -63,6 +63,7 @@ public class Question extends BaseModel implements UserOwned {
 	}
 
 	@Override
+	@JsonIgnore
 	public User getUser() {
 		return quiz.getUser();
 	}

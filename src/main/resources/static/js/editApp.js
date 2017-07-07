@@ -64,7 +64,8 @@
 					function(response) {
 						console.log(response.data);
 						if (questionId == 0) {
-							$scope.refreshQuestions();
+							$scope.questions.push(response.data);
+							$scope.newQuestion = "";
 						}
 					}, 
 					function(reason) {
