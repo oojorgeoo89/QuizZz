@@ -25,7 +25,7 @@
 					</tr>
 				</thead>
 				<tbody>				
-					<tr ng-repeat="quiz in quizzes" class="borderless">
+					<tr ng-repeat="quiz in quizzes">
 						<td>
 							<h4>{{quiz.name}}</h4>
 							<h5><small class="text-muted">{{quiz.description}}</small></h5>
@@ -46,7 +46,7 @@
 			</table>
 			
 			<div class="text-center">
-				<button th:text="#{label.home.maintable.loadmore}" class="btn" ng-click="loadNextPage()" ng-show="pagination.morePagesAvailable">Load more...</button>
+				<button th:text="#{label.home.maintable.loadmore}" class="btn btn-default" ng-click="loadNextPage()" ng-show="pagination.morePagesAvailable">Load more...</button>
 			</div>
 			
 		</div>

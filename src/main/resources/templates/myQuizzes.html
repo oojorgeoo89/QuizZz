@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head  th:replace="fragments/head :: headerFragment">
+</head>
+<body ng-app="myQuizzesApp" th:attr="ng-init='userId='+${#authentication.principal.id}">
+
+	<div th:replace="fragments/header :: header">...</div>
+
+	<div class="container">
+
+		<div ng-controller="MyQuizzesCtrl">
+			
+			<div>
+				<h1 th:text="#{label.myquizzes.welcome}">My Quizzes</h1>
+				<br/>
+			</div>
+				
+			<table class="table table-hover" align="center">
+				<thead>
+					<tr>
+						<th th:text="#{label.myquizzes.maintable.headers.quiz}" width="70%">Quiz</th>
+						<th th:text="#{label.myquizzes.maintable.headers.questions}">Questions</th>
+						<th th:text="#{label.myquizzes.maintable.headers.times}">Times played</th>
+						<th th:text="#{label.myquizzes.maintable.headers.edit}">Edit</th>
+					</tr>
+				</thead>
+				<tbody>				
+					<tr ng-repeat="quiz in quizzes">
+						<td>
+							<h4>{{quiz.name}}</h4>
+							<h5><small class="text-muted">{{quiz.description}}</small></h5>
+						</td>
+						<td>
+							<p>20</p>
+						</td>
+						<td>
+							<p>5033</p>
+						</td>
+						<td>
+							<div class="btn-group">
+								<a href="/editQuiz/{{quiz.id}}" class="btn btn-primary">
+									<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+								</a>
+								<button class="btn btn-primary" ng-click="deleteQuiz(quiz.id)">
+									<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+								</button>
+							</div>
+							
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			
+			<div class="text-center">
+				<button th:text="#{label.myquizzes.maintable.loadmore}" class="btn btn-default" ng-click="loadNextPage()" ng-show="pagination.morePagesAvailable">Load more...</button>
+			</div>
+			
+		</div>
+
+	</div>
+	
+	<div th:replace="fragments/angular :: angular">...</div>
+
+</body>
+</html>

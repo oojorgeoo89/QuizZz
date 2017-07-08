@@ -24,7 +24,7 @@ import jorge.rv.quizzz.service.AccessControlService;
 import jorge.rv.quizzz.service.QuizService;
 
 @Controller
-public class QuizzController {
+public class WebQuizController {
 
 	@Autowired
 	QuizService quizService;

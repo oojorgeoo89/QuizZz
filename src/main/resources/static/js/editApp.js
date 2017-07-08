@@ -81,7 +81,12 @@
 			$http.delete("/api/questions/" + questionId)
 			.then(
 					function(response) {
-						$scope.refreshQuestions();
+						for (var i = 0; i < $scope.questions.length; i++) {
+						    if ($scope.questions[i].id == questionId) {
+						    	$scope.questions.splice(i, 1);
+						    	break;
+						    }
+						}
 					}, 
 					function(reason) {
 						console.log(reason.data);

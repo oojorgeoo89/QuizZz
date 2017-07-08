@@ -1,8 +1,8 @@
 (function() {
 
-	var app = angular.module("homeApp", []);
+	var app = angular.module("myQuizzesApp", []);
 
-	var homeCtrl = function($scope, $http) {	  
+	var myQuizzesCtrl = function($scope, $http) {	  
 	
 		$scope.pagination = {
 			pageNumber: 0,
@@ -12,7 +12,7 @@
 		$scope.loadNextPage = function(quizName, quizDescription) {
 		
 			if ($scope.pagination.morePagesAvailable) {
-				$http.get("/api/quizzes?page=" + $scope.pagination.pageNumber)
+				$http.get("/api/users/" + $scope.userId + "/quizzes?page=" + $scope.pagination.pageNumber)
 					.then(
 						function(response) {
 							if ($scope.quizzes == undefined) {
@@ -29,12 +29,32 @@
 						}
 					);
 			}
-		};
+		}
+		
+		$scope.deleteQuiz = function(quizId) {
+			if (quizId == 0)
+				return;
+
+			$http.delete("/api/quizzes/" + quizId)
+			.then(
+					function(response) {
+						for (var i = 0; i < $scope.quizzes.length; i++) {
+						    if ($scope.quizzes[i].id == quizId) {
+						    	$scope.quizzes.splice(i, 1);
+						    	break;
+						    }
+						}
+					}, 
+					function(reason) {
+						console.log(reason.data);
+					}
+			);
+		}
 	
 		$scope.loadNextPage();
 		
 	};
 
-	app.controller("HomeCtrl", ["$scope", "$http", homeCtrl]);
+	app.controller("MyQuizzesCtrl", ["$scope", "$http", myQuizzesCtrl]);
 
 }());
