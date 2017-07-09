@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Table(name = "answer")
 public class Answer extends BaseModel implements UserOwned {
 	
-	@Size(min=1, max=20, message = "The answer should be less than 20 characters")
+	@Size(min=1, max=50, message = "The answer should be less than 50 characters")
 	@NotNull(message = "No answer text provided.")
 	private String text;
 	
@@ -25,7 +25,7 @@ public class Answer extends BaseModel implements UserOwned {
 
 	@JsonIgnore
 	@NotNull
-	private Boolean iscorrect;
+	private Boolean iscorrect = false;
 	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)
 	private Calendar createdDate;

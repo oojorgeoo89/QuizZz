@@ -37,14 +37,17 @@
 			        	<table class="table" align="center">
 							<tbody>
 								<tr ng-repeat="question in questions">
-									<td class="col-sm-10">
-										<input placeholder="Question text..." class="form-control" ng-model="question.text"/>
+									<td width="80%">
+										<input th:placeholder="#{label.editquiz.text.placeholder}" class="form-control" ng-model="question.text"/>
 									</td>
-									<td class="col-sm-2">
+									<td>
 										<div class="btn-group">
 											<button class="btn btn-primary" ng-click="saveQuestion(question.id, question.text)">
 												<span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
 											</button>
+											<a href="/editAnswer/{{question.id}}" class="btn btn-primary">
+												<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+											</a>
 											<button class="btn btn-primary" ng-click="deleteQuestion(question.id)">
 												<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
 											</button>
@@ -52,7 +55,9 @@
 									</td>
 								</tr>
 								<tr>
-									<td><input placeholder="Question text..." class="form-control" ng-model="newQuestion"/></td>
+									<td>
+										<input th:placeholder="#{label.editquiz.text.placeholder}" class="form-control" ng-model="newQuestion"/>
+									</td>
 									<td>
 										<button class="btn btn-primary" ng-click="saveQuestion(0, newQuestion)">
 											<span class="glyphicon glyphicon-floppy-disk" aria-hidden="false"></span>
@@ -72,7 +77,9 @@
 		</div>
 	</div>
 
-
 	<div th:replace="fragments/angular :: angular">...</div>
+	<script type="text/javascript" src="../js/editApp.js"
+		        th:src="@{/js/editApp.js}"></script>
+		        
 </body>
 </html>

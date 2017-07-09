@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head  th:replace="fragments/head :: headerFragment">
+</head>
+<body ng-app="editAnswersApp" th:attr="ng-init='questionId='+${question.id}">
+
+	<div th:replace="fragments/header :: header">...</div>
+	
+	<div class="container">
+
+		<div class="container" ng-controller="EditAnswersCtrl"> 
+		
+			<div class="col-sm-2"></div>
+			
+			<div class="col-sm-8">
+			
+				<h2 th:text="${question.text}" class="text-center">Question text</h2>
+				<br/>
+				
+				<form name="EditAnswers">
+				    
+			        <div class="form-group">
+			        	<table class="table" align="center">
+							<tbody>
+								<tr ng-repeat="answer in answers">
+									<td class="col-sm-10">
+										<input th:placeholder="#{label.editanswers.text.placeholder}" class="form-control" ng-model="answer.text"/>
+									</td>
+									<td class="col-sm-2">
+										<div class="btn-group">
+											<button class="btn btn-primary" ng-click="saveAnswer(answer.id, answer.text)">
+												<span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
+											</button>
+											<button class="btn btn-primary" ng-click="deleteAnswer(answer.id)">
+												<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+											</button>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td><input th:placeholder="#{label.editanswers.text.placeholder}" class="form-control" ng-model="newAnswer"/></td>
+									<td>
+										<button class="btn btn-primary" ng-click="saveAnswer(0, newAnswer)">
+											<span class="glyphicon glyphicon-floppy-disk" aria-hidden="false"></span>
+										</button>
+									</td>
+								</tr>		
+							</tbody>
+						</table>
+			        </div>
+				</form>  
+				<!-- Remove this when footer is added -->
+				<br/><br/><br/><br/><br/><br/><br/><br/>
+			</div>
+			 
+			<div class="col-sm-2"></div>
+			 
+		</div>
+	</div>
+
+
+	<div th:replace="fragments/angular :: angular">...</div>
+	<script type="text/javascript" src="../js/editAnswersApp.js"
+		        th:src="@{/js/editAnswersApp.js}"></script>
+		        
+</body>
+</html>

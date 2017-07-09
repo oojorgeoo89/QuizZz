@@ -19,8 +19,10 @@ import jorge.rv.quizzz.exceptions.ModelVerificationException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.AuthenticatedUser;
+import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.service.AccessControlService;
+import jorge.rv.quizzz.service.QuestionService;
 import jorge.rv.quizzz.service.QuizService;
 
 @Controller
@@ -28,6 +30,9 @@ public class WebQuizController {
 
 	@Autowired
 	QuizService quizService;
+	
+	@Autowired
+	QuestionService questionService;
 	
 	@Autowired
 	AccessControlService accessControlService;
@@ -67,6 +72,19 @@ public class WebQuizController {
 			ModelAndView mav = new ModelAndView();
 			mav.addObject("quiz", quiz);
 			mav.setViewName("editQuiz");
+
+			return mav;
+	}
+	
+	@RequestMapping(value = "/editAnswer/{question_id}", method = RequestMethod.GET)
+	@PreAuthorize("isAuthenticated()")
+	public ModelAndView editAnswer(@PathVariable long question_id) throws ResourceUnavailableException, UnauthorizedActionException {
+			Question question = questionService.find(question_id);
+			accessControlService.checkCurrentUserPriviledges(question);
+			
+			ModelAndView mav = new ModelAndView();
+			mav.addObject("question", question);
+			mav.setViewName("editAnswers");
 
 			return mav;
 	}
