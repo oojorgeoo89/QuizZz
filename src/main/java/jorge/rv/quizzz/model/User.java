@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "user")
-public class User extends BaseModel {
+public class User extends BaseModel implements UserOwned {
 	
 	@Column(name = "email")
 	@Email(message = "Please provide a valid Email")
@@ -87,5 +87,11 @@ public class User extends BaseModel {
 
 	public void setRoles(Set<Role> roles) {
 		this.roles = roles;
+	}
+
+	@Override
+	@JsonIgnore
+	public User getUser() {
+		return this;
 	}
 }

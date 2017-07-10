@@ -19,19 +19,15 @@ public class QuestionServiceImpl implements QuestionService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QuestionServiceImpl.class);
 	private QuestionRepository questionRepository;
-	private AccessControlService accessControlService;
 	
 	@Autowired
-	public QuestionServiceImpl(QuestionRepository questionRepository, AccessControlService accessControlService) {
+	public QuestionServiceImpl(QuestionRepository questionRepository) {
 		this.questionRepository = questionRepository;
-		this.accessControlService = accessControlService;
 	}
 	
 	@Override
 	@Transactional
 	public Question save(Question question) throws UnauthorizedActionException {
-		accessControlService.checkCurrentUserPriviledges(question);
-		
 		return questionRepository.save(question);
 	}
 	
@@ -52,7 +48,6 @@ public class QuestionServiceImpl implements QuestionService {
 	@Transactional
 	public Question update(Long id, Question newQuestion) throws ResourceUnavailableException, UnauthorizedActionException {
 		Question currentQuestion = find(id);
-		accessControlService.checkCurrentUserPriviledges(currentQuestion);
 		
 		mergeQuestions(currentQuestion, newQuestion);
 		return questionRepository.save(currentQuestion);
@@ -62,7 +57,6 @@ public class QuestionServiceImpl implements QuestionService {
 	@Transactional
 	public void delete(Long id) throws ResourceUnavailableException, UnauthorizedActionException {
 		Question currentQuestion = find(id);
-		accessControlService.checkCurrentUserPriviledges(currentQuestion);
 		
 		questionRepository.delete(currentQuestion);
 	}

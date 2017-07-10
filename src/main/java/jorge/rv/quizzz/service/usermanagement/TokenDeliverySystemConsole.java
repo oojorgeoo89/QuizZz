@@ -8,11 +8,11 @@ import org.springframework.core.env.Environment;
 import jorge.rv.quizzz.model.TokenModel;
 import jorge.rv.quizzz.model.TokenType;
 import jorge.rv.quizzz.model.User;
-import jorge.rv.quizzz.service.AccessControlServiceImpl;
+import jorge.rv.quizzz.service.accesscontrol.AccessControlServiceAbs;
 
 public class TokenDeliverySystemConsole implements TokenDeliverySystem {
 
-	private static final Logger logger = LoggerFactory.getLogger(AccessControlServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(AccessControlServiceAbs.class);
 	private static final String CONFIG_URI = "quizzz.tokens.%s.url";
 	
 	private Environment env;

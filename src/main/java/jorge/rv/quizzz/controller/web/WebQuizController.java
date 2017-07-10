@@ -21,9 +21,9 @@ import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.AuthenticatedUser;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
-import jorge.rv.quizzz.service.AccessControlService;
 import jorge.rv.quizzz.service.QuestionService;
 import jorge.rv.quizzz.service.QuizService;
+import jorge.rv.quizzz.service.accesscontrol.AccessControlService;
 
 @Controller
 public class WebQuizController {
@@ -35,7 +35,10 @@ public class WebQuizController {
 	QuestionService questionService;
 	
 	@Autowired
-	AccessControlService accessControlService;
+	AccessControlService<Quiz> accessControlServiceQuiz;
+	
+	@Autowired
+	AccessControlService<Question> accessControlServiceQuestion;
 	
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String home() {
@@ -67,7 +70,7 @@ public class WebQuizController {
 	@PreAuthorize("isAuthenticated()")
 	public ModelAndView editQuiz(@PathVariable long quiz_id) throws ResourceUnavailableException, UnauthorizedActionException {
 			Quiz quiz = quizService.find(quiz_id);
-			accessControlService.checkCurrentUserPriviledges(quiz);
+			accessControlServiceQuiz.canCurrentUserUpdateObject(quiz);
 			
 			ModelAndView mav = new ModelAndView();
 			mav.addObject("quiz", quiz);
@@ -80,7 +83,7 @@ public class WebQuizController {
 	@PreAuthorize("isAuthenticated()")
 	public ModelAndView editAnswer(@PathVariable long question_id) throws ResourceUnavailableException, UnauthorizedActionException {
 			Question question = questionService.find(question_id);
-			accessControlService.checkCurrentUserPriviledges(question);
+			accessControlServiceQuestion.canCurrentUserUpdateObject(question);
 			
 			ModelAndView mav = new ModelAndView();
 			mav.addObject("question", question);

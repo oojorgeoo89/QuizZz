@@ -25,7 +25,6 @@ import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.repository.QuizRepository;
-import jorge.rv.quizzz.service.AccessControlService;
 import jorge.rv.quizzz.service.QuizService;
 import jorge.rv.quizzz.service.QuizServiceImpl;
 
@@ -38,7 +37,6 @@ public class QuizServiceTests {
 	
 	// Mocks
 	QuizRepository quizRepository;
-	AccessControlService accessControlService;
 	
 	User user = new User();
 	Quiz quiz = new Quiz();
@@ -46,8 +44,7 @@ public class QuizServiceTests {
 	@Before
 	public void before() {
 		quizRepository = mock(QuizRepository.class);
-		accessControlService = mock(AccessControlService.class);
-		service = new QuizServiceImpl(quizRepository, accessControlService);
+		service = new QuizServiceImpl(quizRepository);
 		
 		user.setId(1l);
 		
@@ -192,7 +189,7 @@ public class QuizServiceTests {
 		
 		when(quizRepository.findOne(quiz.getId())).thenReturn(quiz);
 		doThrow(new UnauthorizedActionException())
-			.when(accessControlService).checkCurrentUserPriviledges(quiz);
+			.when(quizRepository).save(quiz);
 		
 		service.update(quiz.getId(), quiz);
 	}
@@ -218,7 +215,7 @@ public class QuizServiceTests {
 	public void testDeleteFromWrongUser() throws QuizZzException {
 		when(quizRepository.findOne(quiz.getId())).thenReturn(quiz);
 		doThrow(new UnauthorizedActionException())
-			.when(accessControlService).checkCurrentUserPriviledges(quiz);
+			.when(quizRepository).delete(quiz);
 		
 		service.delete(quiz.getId());
 	}

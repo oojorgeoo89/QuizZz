@@ -22,19 +22,19 @@ public class QuizServiceImpl implements QuizService {
 
 	private static final Logger logger = LoggerFactory.getLogger(QuizServiceImpl.class);
 	private QuizRepository quizRepository;
-	private AccessControlService accessControlService;
 	
 	@Autowired
-	public QuizServiceImpl(QuizRepository quizRepository, AccessControlService accessControlService) {
+	public QuizServiceImpl(QuizRepository quizRepository) {
 		this.quizRepository = quizRepository;
-		this.accessControlService = accessControlService;
 	}
 	
 	@Override
 	@Transactional
 	public Quiz save(Quiz quiz, User user) {
 		quiz.setCreatedBy(user);
-		return quizRepository.save(quiz);
+		Quiz q = quizRepository.save(quiz);
+		System.out.println("caraculo" + quiz.getId());
+		return q;
 	}
 
 	@Override
@@ -60,7 +60,6 @@ public class QuizServiceImpl implements QuizService {
 	@Transactional
 	public Quiz update(Long id, Quiz newQuiz) throws UnauthorizedActionException, ResourceUnavailableException {
 		Quiz currentQuiz = find(id);
-		accessControlService.checkCurrentUserPriviledges(currentQuiz);
 		
 		mergeQuizzes(currentQuiz, newQuiz);
 		return quizRepository.save(currentQuiz);
@@ -70,7 +69,6 @@ public class QuizServiceImpl implements QuizService {
 	@Transactional
 	public void delete(Long id) throws ResourceUnavailableException, UnauthorizedActionException {
 		Quiz currentQuiz = find(id);
-		accessControlService.checkCurrentUserPriviledges(currentQuiz);
 		
 		quizRepository.delete(currentQuiz);
 	}

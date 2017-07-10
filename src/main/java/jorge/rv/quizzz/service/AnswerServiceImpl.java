@@ -16,12 +16,10 @@ public class AnswerServiceImpl implements AnswerService {
 
 	private static final Logger logger = LoggerFactory.getLogger(AnswerServiceImpl.class);
 	private AnswerRepository answerRepository;
-	private AccessControlService accessControlService;
 	
 	@Autowired
-	public AnswerServiceImpl(AnswerRepository answerRepository, AccessControlService accessControlService) {
+	public AnswerServiceImpl(AnswerRepository answerRepository) {
 		this.answerRepository = answerRepository;
-		this.accessControlService = accessControlService;
 	}
 
 	@Override
@@ -40,8 +38,6 @@ public class AnswerServiceImpl implements AnswerService {
 	@Override
 	@Transactional
 	public Answer save(Answer answer) throws UnauthorizedActionException {
-		accessControlService.checkCurrentUserPriviledges(answer);
-		
 		return answerRepository.save(answer);
 	}
 
@@ -49,7 +45,6 @@ public class AnswerServiceImpl implements AnswerService {
 	@Transactional
 	public Answer update(Long id, Answer newAnswer) throws ResourceUnavailableException, UnauthorizedActionException {
 		Answer currentAnswer = find(id);
-		accessControlService.checkCurrentUserPriviledges(currentAnswer);
 		
 		mergeAnswers(currentAnswer, newAnswer); 
 		return answerRepository.save(currentAnswer);
@@ -59,7 +54,6 @@ public class AnswerServiceImpl implements AnswerService {
 	@Transactional
 	public void delete(Long id) throws ResourceUnavailableException, UnauthorizedActionException {
 		Answer currentAnswer = find(id);
-		accessControlService.checkCurrentUserPriviledges(currentAnswer);
 		
 		answerRepository.delete(currentAnswer);
 	}

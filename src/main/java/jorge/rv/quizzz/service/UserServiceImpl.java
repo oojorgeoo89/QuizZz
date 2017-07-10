@@ -29,14 +29,12 @@ public class UserServiceImpl implements UserService {
 	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 	private UserRepository userRepository;
 	private RoleRepository roleRepository;
-	private AccessControlService accessControlService;
 	private PasswordEncoder passwordEncoder; 
     
 	@Autowired
-	public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, AccessControlService accessControlService, PasswordEncoder passwordEncoder) {
+	public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
-		this.accessControlService = accessControlService;
 		this.roleRepository = roleRepository;
 	}
 	
@@ -103,7 +101,6 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void delete(Long user_id) throws UnauthorizedActionException, ResourceUnavailableException {
 		User userToDelete = find(user_id);
-		accessControlService.checkCurrentUserPriviledges(userToDelete);
 		
 		userRepository.delete(userToDelete);
 	}
@@ -116,13 +113,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public boolean isRegistrationCompleted(User user) {
-		User refreshedUser = refreshUser(user);
-		
-		return refreshedUser.getEnabled();
-	}
-	
-	private User refreshUser(User user) {
-		return find(user.getId());
+		return user.getEnabled();
 	}
 
 	@Override

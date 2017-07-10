@@ -24,7 +24,6 @@ import jorge.rv.quizzz.model.Roles;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.repository.RoleRepository;
 import jorge.rv.quizzz.repository.UserRepository;
-import jorge.rv.quizzz.service.AccessControlService;
 import jorge.rv.quizzz.service.UserService;
 import jorge.rv.quizzz.service.UserServiceImpl;
 
@@ -35,7 +34,6 @@ public class UserServiceTests {
 	// Mocks
 	UserRepository userRepository;
 	RoleRepository roleRepository;
-	AccessControlService accessControlService;
 	PasswordEncoder passwordEncoder;
 	
 	User user = new User();
@@ -44,10 +42,9 @@ public class UserServiceTests {
 	public void before() {
 		userRepository = mock(UserRepository.class);
 		roleRepository = mock(RoleRepository.class);
-		accessControlService = mock(AccessControlService.class);
 		passwordEncoder = mock(PasswordEncoder.class);
 		
-		service = new UserServiceImpl(userRepository, roleRepository, accessControlService, passwordEncoder);
+		service = new UserServiceImpl(userRepository, roleRepository, passwordEncoder);
 		
 		user.setEmail("a@a.com");
 		user.setPassword("Password");
@@ -93,7 +90,7 @@ public class UserServiceTests {
 	public void testDeleteFromWrongUser() throws QuizZzException {
 		when(userRepository.findOne(user.getId())).thenReturn(user);
 		doThrow(new UnauthorizedActionException())
-			.when(accessControlService).checkCurrentUserPriviledges(user);
+			.when(userRepository).delete(user);
 		
 		service.delete(user.getId());
 	}
