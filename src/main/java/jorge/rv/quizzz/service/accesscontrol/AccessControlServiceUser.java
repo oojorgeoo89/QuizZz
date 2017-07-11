@@ -7,7 +7,7 @@ import jorge.rv.quizzz.model.AuthenticatedUser;
 import jorge.rv.quizzz.model.User;
 
 @Service
-public class AccessControlServiceUser extends AccessControlServiceAbs<User> {
+public class AccessControlServiceUser extends AccessControlServiceUserOwned<User> {
 	
 	/*
 	 * Anyone can create a new user, including non authenticated.

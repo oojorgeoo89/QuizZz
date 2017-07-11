@@ -8,12 +8,13 @@ import org.springframework.stereotype.Service;
 
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.AuthenticatedUser;
+import jorge.rv.quizzz.model.BaseModel;
 import jorge.rv.quizzz.model.UserOwned;
 
 @Service("AccessControlService")
-public abstract class AccessControlServiceAbs<T extends UserOwned> implements AccessControlService<T> {
+public abstract class AccessControlServiceUserOwned<T extends BaseModel & UserOwned> implements AccessControlService<T> {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AccessControlServiceAbs.class);
+	private static final Logger logger = LoggerFactory.getLogger(AccessControlServiceUserOwned.class);
 
 	@Override
 	public void canUserCreateObject(AuthenticatedUser user, T object) throws UnauthorizedActionException {

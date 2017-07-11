@@ -2,9 +2,9 @@ package jorge.rv.quizzz.service.accesscontrol;
 
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.AuthenticatedUser;
-import jorge.rv.quizzz.model.UserOwned;
+import jorge.rv.quizzz.model.BaseModel;
 
-public interface AccessControlService<T extends UserOwned> {
+public interface AccessControlService<T extends BaseModel> {
 	void canUserCreateObject(AuthenticatedUser user, T object) throws UnauthorizedActionException;
 	void canCurrentUserCreateObject(T object) throws UnauthorizedActionException;
 	
