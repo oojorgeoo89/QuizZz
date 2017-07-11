@@ -22,8 +22,8 @@ import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.UserService;
 import jorge.rv.quizzz.service.usermanagement.RegistrationService;
 import jorge.rv.quizzz.service.usermanagement.RegistrationServiceMail;
-import jorge.rv.quizzz.service.usermanagement.TokenDeliverySystem;
-import jorge.rv.quizzz.service.usermanagement.TokenServiceRegistration;
+import jorge.rv.quizzz.service.usermanagement.token.TokenDeliverySystem;
+import jorge.rv.quizzz.service.usermanagement.token.TokenServiceRegistration;
 
 public class RegistrationServiceMailTests {
 	

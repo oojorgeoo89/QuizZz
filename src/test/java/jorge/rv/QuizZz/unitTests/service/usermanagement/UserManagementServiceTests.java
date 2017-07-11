@@ -14,10 +14,10 @@ import jorge.rv.quizzz.model.ForgotPasswordToken;
 import jorge.rv.quizzz.model.TokenType;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.UserService;
-import jorge.rv.quizzz.service.usermanagement.TokenDeliverySystem;
-import jorge.rv.quizzz.service.usermanagement.TokenServiceForgotPassword;
 import jorge.rv.quizzz.service.usermanagement.UserManagementService;
 import jorge.rv.quizzz.service.usermanagement.UserManagementServiceImpl;
+import jorge.rv.quizzz.service.usermanagement.token.TokenDeliverySystem;
+import jorge.rv.quizzz.service.usermanagement.token.TokenServiceForgotPassword;
 
 public class UserManagementServiceTests {
 	private static final String TOKEN = "token";

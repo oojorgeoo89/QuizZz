@@ -21,7 +21,7 @@ import jorge.rv.quizzz.exceptions.InvalidTokenException;
 import jorge.rv.quizzz.model.ForgotPasswordToken;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.repository.ForgotPasswordTokenRepository;
-import jorge.rv.quizzz.service.usermanagement.TokenServiceForgotPassword;
+import jorge.rv.quizzz.service.usermanagement.token.TokenServiceForgotPassword;
 import jorge.rv.quizzz.service.usermanagement.utils.DateHelper;
 import jorge.rv.quizzz.service.usermanagement.utils.TokenGenerator;
 

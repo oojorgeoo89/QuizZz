@@ -1,4 +1,4 @@
-package jorge.rv.quizzz.service.usermanagement;
+package jorge.rv.quizzz.service.usermanagement.token;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;

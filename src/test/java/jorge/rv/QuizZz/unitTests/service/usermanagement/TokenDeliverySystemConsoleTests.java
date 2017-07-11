@@ -12,8 +12,8 @@ import org.springframework.core.env.Environment;
 import jorge.rv.quizzz.model.TokenModel;
 import jorge.rv.quizzz.model.TokenType;
 import jorge.rv.quizzz.model.User;
-import jorge.rv.quizzz.service.usermanagement.TokenDeliverySystem;
-import jorge.rv.quizzz.service.usermanagement.TokenDeliverySystemConsole;
+import jorge.rv.quizzz.service.usermanagement.token.TokenDeliverySystem;
+import jorge.rv.quizzz.service.usermanagement.token.TokenDeliverySystemConsole;
 
 public class TokenDeliverySystemConsoleTests {
 

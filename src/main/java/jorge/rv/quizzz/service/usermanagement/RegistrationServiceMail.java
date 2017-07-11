@@ -8,6 +8,8 @@ import jorge.rv.quizzz.model.RegistrationToken;
 import jorge.rv.quizzz.model.TokenType;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.UserService;
+import jorge.rv.quizzz.service.usermanagement.token.TokenDeliverySystem;
+import jorge.rv.quizzz.service.usermanagement.token.TokenServiceRegistration;
 
 @Service
 public class RegistrationServiceMail implements RegistrationService {

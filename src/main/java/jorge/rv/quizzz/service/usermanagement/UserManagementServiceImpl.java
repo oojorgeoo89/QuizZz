@@ -7,6 +7,8 @@ import jorge.rv.quizzz.model.ForgotPasswordToken;
 import jorge.rv.quizzz.model.TokenType;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.UserService;
+import jorge.rv.quizzz.service.usermanagement.token.TokenDeliverySystem;
+import jorge.rv.quizzz.service.usermanagement.token.TokenServiceForgotPassword;
 
 @Service
 public class UserManagementServiceImpl implements UserManagementService {

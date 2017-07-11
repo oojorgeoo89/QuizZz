@@ -1,4 +1,4 @@
-package jorge.rv.quizzz.service.usermanagement;
+package jorge.rv.quizzz.service.usermanagement.token;
 
 import org.springframework.scheduling.annotation.Async;
 

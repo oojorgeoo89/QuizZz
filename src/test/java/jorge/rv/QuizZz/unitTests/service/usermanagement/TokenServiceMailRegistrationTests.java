@@ -22,7 +22,7 @@ import jorge.rv.quizzz.model.ForgotPasswordToken;
 import jorge.rv.quizzz.model.RegistrationToken;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.repository.RegistrationTokenRepository;
-import jorge.rv.quizzz.service.usermanagement.TokenServiceRegistration;
+import jorge.rv.quizzz.service.usermanagement.token.TokenServiceRegistration;
 import jorge.rv.quizzz.service.usermanagement.utils.DateHelper;
 import jorge.rv.quizzz.service.usermanagement.utils.TokenGenerator;
 
