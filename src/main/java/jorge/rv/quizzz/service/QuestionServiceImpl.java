@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jorge.rv.quizzz.exceptions.InvalidParametersException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Answer;
@@ -20,9 +21,12 @@ public class QuestionServiceImpl implements QuestionService {
 	private static final Logger logger = LoggerFactory.getLogger(QuestionServiceImpl.class);
 	private QuestionRepository questionRepository;
 	
+	private AnswerService answerService;
+	
 	@Autowired
-	public QuestionServiceImpl(QuestionRepository questionRepository) {
+	public QuestionServiceImpl(QuestionRepository questionRepository, AnswerService answerService) {
 		this.questionRepository = questionRepository;
+		this.answerService = answerService;
 	}
 	
 	@Override
@@ -70,6 +74,17 @@ public class QuestionServiceImpl implements QuestionService {
 
 	private void mergeQuestions(Question currentQuestion, Question newQuestion) {
 		currentQuestion.setText(newQuestion.getText());
+	}
+
+	@Override
+	public Boolean checkAnswer(Question question, Long selectedAnswer) {
+		for (Answer answer : question.getAnswers()) {
+			if (answer.getId() == selectedAnswer) {
+				return answerService.checkAnswer(answer);
+			}
+		}
+		
+		throw new InvalidParametersException("The answer '" + selectedAnswer + "' is not available");
 	}
 
 }

@@ -27,8 +27,7 @@ public class Question extends BaseModel implements UserOwned {
 	@JsonIgnore
 	private Quiz quiz;
 	
-	@OneToMany(mappedBy="question", cascade=CascadeType.ALL, fetch=FetchType.LAZY)
-	@JsonIgnore
+	@OneToMany(mappedBy="question", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
 	private List<Answer> answers;
 	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)

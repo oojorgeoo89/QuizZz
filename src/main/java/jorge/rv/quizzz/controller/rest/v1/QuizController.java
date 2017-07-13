@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,6 +26,8 @@ import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.AuthenticatedUser;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
+import jorge.rv.quizzz.model.support.AnswersBundle;
+import jorge.rv.quizzz.model.support.Results;
 import jorge.rv.quizzz.service.QuizService;
 
 @RestController
@@ -95,6 +98,12 @@ public class QuizController {
 			throws ResourceUnavailableException {
 		
 		return quizService.findQuestionsByQuiz(quiz_id);
+	}
+	
+	@RequestMapping(value = "/{quiz_id}/submitAnswers", method = RequestMethod.POST)
+	@PreAuthorize("permitAll")
+	public Results playQuiz(@PathVariable long quiz_id, @RequestBody List<AnswersBundle> answersBundle) {
+		return quizService.checkAnswers(quiz_id, answersBundle);
 	}
 	
 }

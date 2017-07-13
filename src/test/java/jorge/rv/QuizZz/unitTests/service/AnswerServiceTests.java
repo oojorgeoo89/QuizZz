@@ -1,7 +1,6 @@
 package jorge.rv.QuizZz.unitTests.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -143,5 +142,22 @@ public class AnswerServiceTests {
 		service.delete(answer.getId());
 	}
 
+	@Test
+	public void testCheckAnswer_isCorrect() {
+		answer.setIscorrect(true);
+		
+		boolean isCorrect = service.checkAnswer(answer);
+		
+		assertTrue(isCorrect);
+	}
+	
+	@Test
+	public void testCheckAnswer_isInorrect() {
+		answer.setIscorrect(false);
+		
+		boolean isCorrect = service.checkAnswer(answer);
+		
+		assertFalse(isCorrect);
+	}
 
 }

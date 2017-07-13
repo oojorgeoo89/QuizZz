@@ -9,4 +9,5 @@ public interface AnswerService {
 	Answer find(Long id) throws ResourceUnavailableException;
 	Answer update(Long id, Answer newAnswer) throws UnauthorizedActionException, ResourceUnavailableException;
 	void delete(Long id) throws UnauthorizedActionException, ResourceUnavailableException;
+	Boolean checkAnswer(Answer answer);
 }

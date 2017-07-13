@@ -3,6 +3,7 @@ package jorge.rv.QuizZz.unitTests.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -18,25 +19,31 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import jorge.rv.quizzz.exceptions.InvalidParametersException;
 import jorge.rv.quizzz.exceptions.QuizZzException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.model.User;
+import jorge.rv.quizzz.model.support.AnswersBundle;
+import jorge.rv.quizzz.model.support.Results;
 import jorge.rv.quizzz.repository.QuizRepository;
+import jorge.rv.quizzz.service.QuestionService;
 import jorge.rv.quizzz.service.QuizService;
 import jorge.rv.quizzz.service.QuizServiceImpl;
 
 public class QuizServiceTests {
 	
 	private static final int DEFAULT_PAGE_SIZE = 5;
+	private static final int DEFAULT_NUMBER_OF_QUESTIONS = 10;
 	private static final Pageable pageable = createDefaultPage();
 
 	QuizService service;
 	
 	// Mocks
 	QuizRepository quizRepository;
+	QuestionService questionService;
 	
 	User user = new User();
 	Quiz quiz = new Quiz();
@@ -44,7 +51,8 @@ public class QuizServiceTests {
 	@Before
 	public void before() {
 		quizRepository = mock(QuizRepository.class);
-		service = new QuizServiceImpl(quizRepository);
+		questionService = mock(QuestionService.class);
+		service = new QuizServiceImpl(quizRepository, questionService);
 		
 		user.setId(1l);
 		
@@ -256,6 +264,106 @@ public class QuizServiceTests {
 	
 	private static Pageable createDefaultPage() {
 		return new PageRequest(0, DEFAULT_PAGE_SIZE);
+	}
+	
+	@Test
+	public void testCheckAnswers() {
+		List<AnswersBundle> listBundles = generateAnswersBundle(DEFAULT_NUMBER_OF_QUESTIONS);
+		
+		Quiz quiz = new Quiz();
+		List<Question> listQuestions = generateQuestions(DEFAULT_NUMBER_OF_QUESTIONS);
+		quiz.setQuestions(listQuestions);
+		when(quizRepository.findOne(1l)).thenReturn(quiz);
+		
+		when(questionService.checkAnswer(any(Question.class), any(Long.class)))
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(false)
+			.thenReturn(false)
+			.thenReturn(false)
+			.thenReturn(false)
+			.thenReturn(false);
+		
+		
+		Results results = service.checkAnswers(1l, listBundles);
+		
+		
+		verify(questionService, times(DEFAULT_NUMBER_OF_QUESTIONS)).checkAnswer(any(Question.class), any(Long.class));
+		assertEquals(5, results.getCorrectQuestions());
+		assertEquals(DEFAULT_NUMBER_OF_QUESTIONS, results.getTotalQuestions());
+	}
+	
+	@Test(expected = ResourceUnavailableException.class)
+	public void testCheckAnswers_quizDoesntExsist_shouldForwardException() {
+		service.checkAnswers(1l, null);
+	}
+
+	@Test(expected = InvalidParametersException.class)
+	public void testCheckAnswers_answerIsMissing_shouldForwardException() {
+		List<AnswersBundle> list = generateAnswersBundle(1);
+		
+		Quiz quiz = new Quiz();
+		List<Question> listQuestions = generateQuestions(1);
+		quiz.setQuestions(listQuestions);
+		
+		when(quizRepository.findOne(1l)).thenReturn(quiz);
+		when(questionService.checkAnswer(any(Question.class), any(Long.class))).thenThrow(new InvalidParametersException());
+		
+		
+		service.checkAnswers(1l, list);
+	}
+	
+	@Test(expected = InvalidParametersException.class)
+	public void testCheckAnswers_questionIsNotAnswered_shouldThrowException() {
+		List<AnswersBundle> listBundles = generateAnswersBundle(DEFAULT_NUMBER_OF_QUESTIONS);
+		
+		Quiz quiz = new Quiz();
+		List<Question> listQuestions = generateQuestions(DEFAULT_NUMBER_OF_QUESTIONS + 1);
+		quiz.setQuestions(listQuestions);
+		when(quizRepository.findOne(1l)).thenReturn(quiz);
+		
+		when(questionService.checkAnswer(any(Question.class), any(Long.class)))
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(false)
+			.thenReturn(false)
+			.thenReturn(false)
+			.thenReturn(false)
+			.thenReturn(false);
+		
+		
+		service.checkAnswers(1l, listBundles);
+	}
+	
+	private List<Question> generateQuestions(int numberOfQuestions) {
+		List<Question> list = new ArrayList<>();
+		
+		for (int i=0; i<numberOfQuestions; i++) {
+			Question question = new Question();
+			question.setId((long) i);
+			list.add(question);
+		}
+		
+		return list;
+	}
+	
+	private List<AnswersBundle> generateAnswersBundle(int numberOfQuestions) {
+		List<AnswersBundle> list = new ArrayList<>();
+		
+		for (int i=0; i<numberOfQuestions; i++) {
+			AnswersBundle answersBundle = new AnswersBundle();
+			answersBundle.setQuestion((long) i);
+			answersBundle.setSelectedAnswer((long) i);
+			list.add(answersBundle);
+		}
+		
+		return list;
 	}
 	
 }

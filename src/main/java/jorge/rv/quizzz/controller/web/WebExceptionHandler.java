@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import jorge.rv.quizzz.controller.utils.ErrorInfo;
+import jorge.rv.quizzz.exceptions.InvalidParametersException;
 import jorge.rv.quizzz.exceptions.InvalidTokenException;
 import jorge.rv.quizzz.exceptions.ModelVerificationException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
@@ -46,6 +47,12 @@ public class WebExceptionHandler {
 	@ExceptionHandler(InvalidTokenException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST) 
 	public ModelAndView invalidTokenError(HttpServletRequest req, Exception ex) {
+		return setModelAndView(req.getRequestURL().toString(), ex, HttpStatus.BAD_REQUEST.value());
+	}
+	
+	@ExceptionHandler(InvalidParametersException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ModelAndView invalidParametersError(HttpServletRequest req, Exception ex) {
 		return setModelAndView(req.getRequestURL().toString(), ex, HttpStatus.BAD_REQUEST.value());
 	}
 	

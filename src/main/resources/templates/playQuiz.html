@@ -2,9 +2,46 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head  th:replace="fragments/head :: headerFragment">
 </head>
-<body>
+<body ng-app="playQuizApp" th:attr="ng-init='quizId='+${quiz.id}">
 
 	<div th:replace="fragments/header :: header">...</div>
 	
+	<div class="container">
+	
+		<div class="col-sm-2"></div>
+		
+		<div class="col-sm-8" ng-controller="PlayQuizCtrl">
+		
+			<div ng-show="playing">
+				<h2 class="form-signin-heading">{{currentQuestion.text}}</h2>
+				<hr/>	
+				
+				<div class="form-group">
+		        	<div ng-repeat="answer in currentQuestion.answers"> 
+		        		<div class="radio">
+		        			<input type="radio" ng-model="$parent.answerChoices" ng-value="{{answer.id}}" name="answerChoices">{{answer.text}}</input>
+		        		</div>
+					</div>
+					<button th:text="#{label.playquiz.submit.question}" class="btn btn-lg btn-primary btn-block" type="submit" ng-click="answerQuestion(answerChoices)"></button>
+		        </div>
+			</div>
+			
+			<div ng-hide="playing">
+				<h2 th:text="${quiz.name}" class="form-signin-heading text-center">...</h2>
+				<hr/>	
+				
+				<h1 class="text-center">{{ Math.round((results.correctQuestions * 100)  / results.totalQuestions) }}%</h1>
+				
+				<h3 class="text-center">{{results.correctQuestions}} / {{results.totalQuestions}}</h3>
+			</div>
+			
+		</div>
+		
+		<div class="col-sm-2"></div>
+	</div>
+	 
+	<div th:replace="fragments/angular :: angular"></div>
+	<script type="text/javascript" src="../js/playApp.js"
+		        th:src="@{/js/playApp.js}"></script>
 </body>
 </html>

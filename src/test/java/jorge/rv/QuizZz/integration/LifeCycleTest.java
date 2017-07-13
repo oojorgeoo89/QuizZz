@@ -17,6 +17,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -38,6 +39,8 @@ import jorge.rv.quizzz.controller.rest.v1.UserController;
 @SpringBootTest(classes = QuizZzApplication.class)
 @ActiveProfiles("test")
 public class LifeCycleTest {
+	private static final String CORRECT_QUESTIONS_TEXT = "correctQuestions";
+	private static final String TOTAL_QUESTIONS_TEXT = "totalQuestions";
 	private static final String EMAIL_KEY = "email";
 	private static final String USERNAME_KEY = "username";
 	private static final String PASSWORD_KEY = "password";
@@ -539,10 +542,63 @@ public class LifeCycleTest {
 		// Update an Answer
 		mvc.perform(post(AnswerController.ROOT_MAPPING + "/1")
 				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1 + " updated")
-				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_2)
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
 				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$." + ANSWER_TEXT_KEY, Matchers.containsString(ANSWER_TEXT_1 + " updated")));
+		
+		/***********************
+		 * 
+		 * Play a quiz
+		 * 
+		 ***********************/
+		
+		// Send results for non existing quiz
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/55/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content("[ { \"question\": 1, \"selectedAnswer\": 1 }]"))
+					.andExpect(status().isNotFound());
+		
+		// Send results with a missing question
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content("[ { \"question\": 1, \"selectedAnswer\": 1 }]"))
+					.andExpect(status().isBadRequest());
+		
+		// Send results with an invalid answer
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content(
+						"[ "
+						+ "{ \"question\": 1, \"selectedAnswer\": 1 },"
+						+ "{ \"question\": 2, \"selectedAnswer\": 55 }"
+						+ "]"))
+					.andExpect(status().isBadRequest());
+		
+		// Send empty results
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content("[]"))
+					.andExpect(status().isBadRequest());
+		
+		// Send correct results and check response
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content(
+						"[ "
+						+ "{ \"question\": 1, \"selectedAnswer\": 2 },"
+						+ "{ \"question\": 2, \"selectedAnswer\": 3 }"
+						+ "]"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$." + TOTAL_QUESTIONS_TEXT, Matchers.equalTo(2)))
+					.andExpect(jsonPath("$." + CORRECT_QUESTIONS_TEXT, Matchers.equalTo(1)));
+		
+		// Send results with an extra question - should be ignored
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content(
+						"[ "
+						+ "{ \"question\": 1, \"selectedAnswer\": 2 },"
+						+ "{ \"question\": 2, \"selectedAnswer\": 3 },"
+						+ "{ \"question\": 3, \"selectedAnswer\": 5 }"
+						+ "]"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$." + TOTAL_QUESTIONS_TEXT, Matchers.equalTo(2)))
+					.andExpect(jsonPath("$." + CORRECT_QUESTIONS_TEXT, Matchers.equalTo(1)));
 		
 		/***********************
 		 * 

@@ -1,7 +1,7 @@
 package jorge.rv.QuizZz.unitTests.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -14,6 +14,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import jorge.rv.quizzz.exceptions.InvalidParametersException;
 import jorge.rv.quizzz.exceptions.QuizZzException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
@@ -22,15 +23,19 @@ import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.repository.QuestionRepository;
+import jorge.rv.quizzz.service.AnswerService;
 import jorge.rv.quizzz.service.QuestionService;
 import jorge.rv.quizzz.service.QuestionServiceImpl;
 
 public class QuestionServiceTests {
 
+	private static final int DEFAULT_NUMBER_OF_ANSWERS = 10;
+
 	QuestionService service;
 	
 	//Mocks
 	QuestionRepository questionRepository;
+	AnswerService answerService;
 	
 	User user = new User();
 	Quiz quiz = new Quiz();
@@ -39,7 +44,8 @@ public class QuestionServiceTests {
 	@Before
 	public void before() {
 		questionRepository = mock(QuestionRepository.class);
-		service = new QuestionServiceImpl(questionRepository);
+		answerService = mock(AnswerService.class);
+		service = new QuestionServiceImpl(questionRepository, answerService);
 		
 		user.setId(1l);
 		quiz.setCreatedBy(user);
@@ -173,6 +179,52 @@ public class QuestionServiceTests {
 		when(questionRepository.findOne(question.getId())).thenReturn(null);
 		
 		service.findAnswersByQuestion(question.getId());
+	}
+	
+	@Test(expected = InvalidParametersException.class)
+	public void testCheckAnswer_answerNotFound_shouldThrowException() {
+		List<Answer> listAnswers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
+		question.setAnswers(listAnswers);
+		
+		service.checkAnswer(question, (long) (DEFAULT_NUMBER_OF_ANSWERS + 5));
+	}
+	
+	@Test()
+	public void testCheckAnswer_answerFound_shouldReturnCorrect() {
+		List<Answer> listAnswers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
+		question.setAnswers(listAnswers);
+		
+		when(answerService.checkAnswer(any(Answer.class))).thenReturn(true);
+		
+		boolean isCorrect = service.checkAnswer(question, (long) (DEFAULT_NUMBER_OF_ANSWERS-1));
+		
+		verify(answerService, times(1)).checkAnswer(any(Answer.class));
+		assertTrue(isCorrect);
+	}
+	
+	@Test()
+	public void testCheckAnswer_answerFound_shouldReturnIncorrect() {
+		List<Answer> listAnswers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
+		question.setAnswers(listAnswers);
+		
+		when(answerService.checkAnswer(any(Answer.class))).thenReturn(false);
+		
+		boolean isCorrect = service.checkAnswer(question, (long) (DEFAULT_NUMBER_OF_ANSWERS-1));
+		
+		verify(answerService, times(1)).checkAnswer(any(Answer.class));
+		assertFalse(isCorrect);
+	}
+	
+	private List<Answer> generateAnswers(int numberOfAnswers) {
+		List<Answer> list = new ArrayList<>();
+		
+		for (int i=0; i<numberOfAnswers; i++) {
+			Answer answer = new Answer();
+			answer.setId((long) i);
+			list.add(answer);
+		}
+		
+		return list;
 	}
 
 }

@@ -10,11 +10,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jorge.rv.quizzz.exceptions.InvalidParametersException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.model.User;
+import jorge.rv.quizzz.model.support.AnswersBundle;
+import jorge.rv.quizzz.model.support.Results;
 import jorge.rv.quizzz.repository.QuizRepository;
 
 @Service("QuizService")
@@ -23,9 +26,12 @@ public class QuizServiceImpl implements QuizService {
 	private static final Logger logger = LoggerFactory.getLogger(QuizServiceImpl.class);
 	private QuizRepository quizRepository;
 	
+	private QuestionService questionService;
+	
 	@Autowired
-	public QuizServiceImpl(QuizRepository quizRepository) {
+	public QuizServiceImpl(QuizRepository quizRepository, QuestionService questionService) {
 		this.quizRepository = quizRepository;
+		this.questionService = questionService;
 	}
 	
 	@Override
@@ -93,6 +99,28 @@ public class QuizServiceImpl implements QuizService {
 	@Override
 	public Page<Quiz> findQuizzesByUser(User user, Pageable pageable) {
 		return quizRepository.findByCreatedBy(user, pageable);
+	}
+
+	@Override
+	public Results checkAnswers(Long quiz_id, List<AnswersBundle> answersBundle) {
+		Results results = new Results();
+		Quiz quiz = find(quiz_id);
+		
+		for (Question question : quiz.getQuestions()) {
+			boolean isFound = false;
+			for (AnswersBundle bundle : answersBundle) {
+				if (bundle.getQuestion() == question.getId()) {
+					isFound = true;
+					results.addAnswer(questionService.checkAnswer(question, bundle.getSelectedAnswer()));
+					break;
+				}
+			}
+			
+			if (isFound == false)
+				throw new InvalidParametersException("No answer found for question: " + question.getText());
+		}
+		
+		return results;
 	}	
 	
 }

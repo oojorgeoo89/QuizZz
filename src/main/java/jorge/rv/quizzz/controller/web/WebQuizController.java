@@ -69,26 +69,50 @@ public class WebQuizController {
 	@RequestMapping(value = "/editQuiz/{quiz_id}", method = RequestMethod.GET)
 	@PreAuthorize("isAuthenticated()")
 	public ModelAndView editQuiz(@PathVariable long quiz_id) throws ResourceUnavailableException, UnauthorizedActionException {
-			Quiz quiz = quizService.find(quiz_id);
-			accessControlServiceQuiz.canCurrentUserUpdateObject(quiz);
-			
-			ModelAndView mav = new ModelAndView();
-			mav.addObject("quiz", quiz);
-			mav.setViewName("editQuiz");
+		Quiz quiz = quizService.find(quiz_id);
+		accessControlServiceQuiz.canCurrentUserUpdateObject(quiz);
+		
+		ModelAndView mav = new ModelAndView();
+		mav.addObject("quiz", quiz);
+		mav.setViewName("editQuiz");
 
-			return mav;
+		return mav;
 	}
 	
 	@RequestMapping(value = "/editAnswer/{question_id}", method = RequestMethod.GET)
 	@PreAuthorize("isAuthenticated()")
 	public ModelAndView editAnswer(@PathVariable long question_id) throws ResourceUnavailableException, UnauthorizedActionException {
-			Question question = questionService.find(question_id);
-			accessControlServiceQuestion.canCurrentUserUpdateObject(question);
-			
-			ModelAndView mav = new ModelAndView();
-			mav.addObject("question", question);
-			mav.setViewName("editAnswers");
+		Question question = questionService.find(question_id);
+		accessControlServiceQuestion.canCurrentUserUpdateObject(question);
+		
+		ModelAndView mav = new ModelAndView();
+		mav.addObject("question", question);
+		mav.setViewName("editAnswers");
 
-			return mav;
+		return mav;
+	}
+	
+	@RequestMapping(value = "/quiz/{quiz_id}", method = RequestMethod.GET)
+	@PreAuthorize("permitAll")
+	public ModelAndView getQuiz(@PathVariable long quiz_id) {
+		Quiz quiz = quizService.find(quiz_id);
+		
+		ModelAndView mav = new ModelAndView();
+		mav.addObject("quiz", quiz);
+		mav.setViewName("quizView");
+
+		return mav;
+	}
+	
+	@RequestMapping(value = "/quiz/{quiz_id}/play", method = RequestMethod.GET)
+	@PreAuthorize("permitAll")
+	public ModelAndView playQuiz(@PathVariable long quiz_id) {
+		Quiz quiz = quizService.find(quiz_id);
+		
+		ModelAndView mav = new ModelAndView();
+		mav.addObject("quiz", quiz);
+		mav.setViewName("playQuiz");
+
+		return mav;
 	}
 }

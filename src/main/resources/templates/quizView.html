@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head  th:replace="fragments/head :: headerFragment">
+</head>
+<body>
+
+	<div th:replace="fragments/header :: header">...</div>
+	
+	<div class="container">
+	
+		<div class="col-sm-2"></div>
+		
+		<div class="col-sm-8">
+		
+			<h2 th:text="${quiz.name}" class="form-signin-heading text-center">New Quiz</h2>
+			<br/>
+			
+			<h4 th:text="${quiz.description}" class="form-signin-heading">New Quiz</h4>
+			<br/>
+			
+			<a th:href="|/quiz/${quiz.id}/play|" th:text="#{label.selectedquiz.playbutton}" class="btn btn-lg btn-primary btn-block" type="submit">Send</a>
+			
+		</div>
+		
+		<div class="col-sm-2"></div>
+	</div>
+	 
+	
+</body>
+</html>

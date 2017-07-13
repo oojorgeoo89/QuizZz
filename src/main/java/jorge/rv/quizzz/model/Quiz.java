@@ -27,7 +27,7 @@ public class Quiz extends BaseModel implements UserOwned {
 	@NotNull(message = "Please provide a name")
 	private String name;
 
-	@Size(max = 100, message = "The description can't be longer than 100 characters.")
+	@Size(max = 500, message = "The description can't be longer than 500 characters.")
 	@NotNull(message = "Please, provide a description")
 	private String description;
 

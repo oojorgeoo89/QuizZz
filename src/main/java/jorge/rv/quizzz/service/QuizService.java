@@ -10,6 +10,8 @@ import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.model.User;
+import jorge.rv.quizzz.model.support.AnswersBundle;
+import jorge.rv.quizzz.model.support.Results;
 
 public interface QuizService {
 	Quiz save(Quiz quiz, User user);
@@ -21,4 +23,5 @@ public interface QuizService {
 	List<Question> findQuestionsByQuiz(Long id) throws ResourceUnavailableException;
 	Page<Quiz> search(String query, Pageable pageable);
 	Page<Quiz> findQuizzesByUser(User user, Pageable pageable);
+	Results checkAnswers(Long quiz_id, List<AnswersBundle> answersBundle);
 }

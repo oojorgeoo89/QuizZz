@@ -63,4 +63,9 @@ public class AnswerServiceImpl implements AnswerService {
 		currentAnswer.setIscorrect(newAnswer.getIscorrect());
 	}
 
+	@Override
+	public Boolean checkAnswer(Answer answer) {
+		return answer.getIscorrect();
+	}
+
 }

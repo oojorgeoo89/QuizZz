@@ -14,4 +14,5 @@ public interface QuestionService {
 	void delete(Long id) throws  ResourceUnavailableException, UnauthorizedActionException;
 	
 	List<Answer> findAnswersByQuestion(Long id) throws ResourceUnavailableException;
+	Boolean checkAnswer(Question question, Long selectedAnswer);
 }
