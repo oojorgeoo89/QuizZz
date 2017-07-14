@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import jorge.rv.quizzz.exceptions.InvalidTokenException;
@@ -60,12 +59,23 @@ public class RegistrationServiceMailTests {
 		registrationService.startRegistration(user);
 	}
 	
-	@Ignore
 	@Test
-	public void startRegistrationWithExistingUser_shouldThrowException() {
+	public void startRegistrationWithNonFullyRegisteredUser_shouldntThrowException() {
 		when(userService.saveUser(user)).thenThrow(new UserAlreadyExistsException());
 		when(userService.findByEmail(user.getEmail())).thenReturn(user);
 		when(userService.isRegistrationCompleted(user)).thenReturn(false);
+		
+		registrationService.startRegistration(user);
+		
+		verify(tokenService, times(1)).generateTokenForUser(user);
+		verify(tokenDeliverySystem, times(1)).sendTokenToUser(any(TokenModel.class), eq(user), eq(TokenType.REGISTRATION_MAIL));
+	}
+	
+	@Test(expected = UserAlreadyExistsException.class)
+	public void startRegistrationWithFullyRegisteredUser_shouldThrowException() {
+		when(userService.saveUser(user)).thenThrow(new UserAlreadyExistsException());
+		when(userService.findByEmail(user.getEmail())).thenReturn(user);
+		when(userService.isRegistrationCompleted(user)).thenReturn(true);
 		
 		registrationService.startRegistration(user);
 		

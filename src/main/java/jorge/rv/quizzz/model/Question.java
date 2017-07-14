@@ -30,7 +30,8 @@ public class Question extends BaseModel implements UserOwned {
 	@Column(name = "q_order")
 	private Integer order;
 	
-	@OneToMany(mappedBy="question", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
+	@JsonIgnore
+	@OneToMany(mappedBy="question", cascade=CascadeType.ALL, fetch=FetchType.LAZY)
 	private List<Answer> answers;
 	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)

@@ -34,7 +34,17 @@
 		}
 		
 		$scope.setQuestion = function(questionNumber) {
-			$scope.currentQuestion = questions[questionNumber];
+
+			$http.get("/api/questions/" + questions[questionNumber].id + "/answers")
+				.then(
+					function(response) {
+						$scope.currentQuestion = questions[questionNumber];
+						$scope.currentAnswers = response.data;
+					}, 
+					function(reason) {
+						$scope.error = "Could not fetch the data.";
+					}
+				);
 		}
 		
 		$scope.answerQuestion = function(selection) {

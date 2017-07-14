@@ -17,7 +17,7 @@
 				<hr/>	
 				
 				<div class="form-group">
-		        	<div ng-repeat="answer in currentQuestion.answers"> 
+		        	<div ng-repeat="answer in currentAnswers"> 
 		        		<div class="radio">
 		        			<input type="radio" ng-model="$parent.answerChoices" ng-value="{{answer.id}}" name="answerChoices">{{answer.text}}</input>
 		        		</div>
