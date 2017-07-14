@@ -77,6 +77,8 @@
 		
 		$scope.saveAll = function() {
 			var url = "/api/questions/updateAll";
+			
+			$scope.saveQuiz();
 
 			$http.post(url + "?quiz_id=" + $scope.quizId,
 				JSON.stringify($scope.questions))

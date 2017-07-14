@@ -81,9 +81,9 @@ public class QuizServiceImpl implements QuizService {
 	@Override
 	@Transactional
 	public List<Question> findQuestionsByQuiz(Long id) throws ResourceUnavailableException {
-		Quiz q = find(id);
+		Quiz question = find(id);
 		
-		return questionService.findQuestionsByQuiz(q);
+		return questionService.findQuestionsByQuiz(question);
 	}	
 
 	private void mergeQuizzes(Quiz currentQuiz, Quiz newQuiz) {

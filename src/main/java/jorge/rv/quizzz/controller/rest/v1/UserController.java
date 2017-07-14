@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import jorge.rv.quizzz.controller.utils.RestVerifier;
-import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
-import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.QuizService;
@@ -70,8 +68,7 @@ public class UserController {
 	@RequestMapping(value = "/{user_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
-	public void delete(@PathVariable Long user_id) 
-			throws UnauthorizedActionException, ResourceUnavailableException {
+	public void delete(@PathVariable Long user_id) {
 		
 		userService.delete(user_id);	
 	}
@@ -79,8 +76,7 @@ public class UserController {
 	@RequestMapping(value = "/{user_id}/quizzes", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
-	public Page<Quiz> getQuizzesByUser(Pageable pageable, @PathVariable Long user_id) 
-			throws ResourceUnavailableException {
+	public Page<Quiz> getQuizzesByUser(Pageable pageable, @PathVariable Long user_id) {
 		
 		User user = userService.find(user_id);
 		return quizService.findQuizzesByUser(user, pageable);

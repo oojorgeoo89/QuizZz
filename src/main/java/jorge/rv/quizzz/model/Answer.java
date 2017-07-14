@@ -27,6 +27,9 @@ public class Answer extends BaseModel implements UserOwned {
 	@NotNull
 	private Boolean iscorrect = false;
 	
+	@Column(name = "a_order")
+	private Integer order;
+	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)
 	private Calendar createdDate;
 
@@ -62,6 +65,14 @@ public class Answer extends BaseModel implements UserOwned {
 	@JsonIgnore
 	public User getUser() {
 		return question.getUser();
+	}
+
+	public Integer getOrder() {
+		return order;
+	}
+
+	public void setOrder(Integer order) {
+		this.order = order;
 	}
 	
 }

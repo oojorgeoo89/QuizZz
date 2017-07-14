@@ -9,12 +9,12 @@ import jorge.rv.quizzz.model.User;
 @Service
 public class AccessControlServiceUser extends AccessControlServiceUserOwned<User> {
 	
-	/*
-	 * Anyone can create a new user, including non authenticated.
-	 */
+	
 	@Override
 	public void canUserCreateObject(AuthenticatedUser user, User object) throws UnauthorizedActionException {
-		
+		/*
+		 * Anyone can create a new user, including non authenticated.
+		 */	
 	}
 	
 	/*

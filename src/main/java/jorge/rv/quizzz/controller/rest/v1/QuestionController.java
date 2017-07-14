@@ -17,9 +17,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import jorge.rv.quizzz.controller.utils.RestVerifier;
-import jorge.rv.quizzz.exceptions.ModelVerificationException;
-import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
-import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Answer;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
@@ -43,8 +40,7 @@ public class QuestionController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public Question save(@Valid Question question, 
 							BindingResult result, 
-							@RequestParam Long quiz_id)
-									throws ResourceUnavailableException, UnauthorizedActionException, ModelVerificationException {
+							@RequestParam Long quiz_id) {
 		
 		RestVerifier.verifyModelResult(result);
 		
@@ -56,7 +52,7 @@ public class QuestionController {
 	@RequestMapping(value = "/updateAll", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
-	public void updateAll(@RequestBody List<Question> questions, @RequestParam Long quiz_id) {
+	public void updateAll(@RequestBody List<Question> questions) {
 		for (int i=0; i<questions.size(); i++) {
 			Question question = questions.get(i);
 			question.setOrder(i+1);
@@ -68,8 +64,7 @@ public class QuestionController {
 	@RequestMapping(value = "/{question_id}", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
-	public Question find(@PathVariable Long question_id)
-			throws ResourceUnavailableException {
+	public Question find(@PathVariable Long question_id) {
 		
 		return questionService.find(question_id);
 	}
@@ -79,8 +74,7 @@ public class QuestionController {
 	@ResponseStatus(HttpStatus.OK)
 	public Question update(@PathVariable Long question_id, 
 							@Valid Question question, 
-							BindingResult result)
-									throws ResourceUnavailableException, UnauthorizedActionException, ModelVerificationException {
+							BindingResult result) {
 		
 		RestVerifier.verifyModelResult(result);
 		
@@ -92,8 +86,7 @@ public class QuestionController {
 	@RequestMapping(value = "/{question_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
-	public void delete(@PathVariable Long question_id)
-			throws ResourceUnavailableException, UnauthorizedActionException {
+	public void delete(@PathVariable Long question_id) {
 		
 		questionService.delete(question_id);
 	}
@@ -101,8 +94,7 @@ public class QuestionController {
 	@RequestMapping(value = "/{question_id}/answers", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
-	public List<Answer> findAnswers(@PathVariable Long question_id)
-			throws ResourceUnavailableException {
+	public List<Answer> findAnswers(@PathVariable Long question_id) {
 		
 		return questionService.findAnswersByQuestion(question_id);
 	}

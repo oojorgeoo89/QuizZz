@@ -20,9 +20,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import jorge.rv.quizzz.controller.utils.RestVerifier;
-import jorge.rv.quizzz.exceptions.ModelVerificationException;
-import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
-import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.AuthenticatedUser;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
@@ -55,8 +52,7 @@ public class QuizController {
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.CREATED)
-	public Quiz save(@AuthenticationPrincipal AuthenticatedUser user, @Valid Quiz quiz, BindingResult result) 
-			throws ModelVerificationException {
+	public Quiz save(@AuthenticationPrincipal AuthenticatedUser user, @Valid Quiz quiz, BindingResult result) {
 		
 		RestVerifier.verifyModelResult(result);
 		
@@ -66,8 +62,7 @@ public class QuizController {
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
-	public Quiz find(@PathVariable Long quiz_id) 
-			throws ResourceUnavailableException {
+	public Quiz find(@PathVariable Long quiz_id) {
 		
 		return quizService.find(quiz_id);
 	}
@@ -75,8 +70,7 @@ public class QuizController {
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
-	public Quiz update(@PathVariable Long quiz_id, @Valid Quiz quiz, BindingResult result) 
-			throws ResourceUnavailableException, UnauthorizedActionException, ModelVerificationException {
+	public Quiz update(@PathVariable Long quiz_id, @Valid Quiz quiz, BindingResult result) {
 		
 		RestVerifier.verifyModelResult(result);
 		
@@ -87,8 +81,7 @@ public class QuizController {
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
-	public void delete(@PathVariable Long quiz_id) 
-			throws ResourceUnavailableException, UnauthorizedActionException {
+	public void delete(@PathVariable Long quiz_id) {
 		
 		quizService.delete(quiz_id);
 	}
@@ -96,8 +89,7 @@ public class QuizController {
 	@RequestMapping(value = "/{quiz_id}/questions", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
-	public List<Question> findQuestions(@PathVariable Long quiz_id) 
-			throws ResourceUnavailableException {
+	public List<Question> findQuestions(@PathVariable Long quiz_id) {
 		
 		return quizService.findQuestionsByQuiz(quiz_id);
 	}

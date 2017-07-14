@@ -72,8 +72,9 @@ public class QuestionServiceImpl implements QuestionService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<Answer> findAnswersByQuestion(Long id) throws ResourceUnavailableException {
-		Question q = find(id);
-		return q.getAnswers();
+		Question question = find(id);
+		
+		return answerService.findQuestionsByQuiz(question);
 	}
 
 	private void mergeQuestions(Question currentQuestion, Question newQuestion) {

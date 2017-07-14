@@ -9,6 +9,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
+
+import javax.mail.MessagingException;
+
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
@@ -34,6 +38,7 @@ import jorge.rv.quizzz.controller.rest.v1.AnswerController;
 import jorge.rv.quizzz.controller.rest.v1.QuestionController;
 import jorge.rv.quizzz.controller.rest.v1.QuizController;
 import jorge.rv.quizzz.controller.rest.v1.UserController;
+
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = QuizZzApplication.class)
@@ -101,132 +106,511 @@ public class LifeCycleTest {
 	@Sql({"/dbInit.sql"})
 	public void testLifeCycle() throws Exception {
 		
-		/***********************
-		 * 
-		 * User Controller
-		 * 
-		 ***********************/
-		
-		// Attempt to create an User with invalid parameters
-		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
-				.param(USERNAME_KEY, USERNAME_1)
-				.param(PASSWORD_KEY, PASSWORD_1_OLD)
-				.param(EMAIL_KEY, "aom"))
-					.andExpect(status().isBadRequest());
-		
-		// Create a new User
-		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
-				.param(USERNAME_KEY, USERNAME_1)
-				.param(PASSWORD_KEY, PASSWORD_1_OLD)
-				.param(EMAIL_KEY, EMAIL_1))
-					.andExpect(status().isOk());
-		
-		// Check a mail was received
-        String continueRegistrationUrl = MailHelper.waitForEmailAndExtractUrl(smtpServer);
-        
-        // Activate the user with the wrong token
-        mvc.perform(get(continueRegistrationUrl + "33"))
-					.andExpect(status().isBadRequest());
-        
-        // Activate the user
-        mvc.perform(get(continueRegistrationUrl))
-			.andExpect(status().isOk());
-        
-        // Invoke forgot password with an inexistent mail.
-        // Shouldn't fail, but it shouldn't send an email.
-		mvc.perform(post("/user/forgotPassword")
-				.param(EMAIL_KEY, "invalid@mail.com"))
-					.andExpect(status().isOk());
-		
-		smtpServer.waitForIncomingEmail(1);
-		assertEquals(0, smtpServer.getReceivedMessages().length);
-		
-		// Invoke forgot password with a valid email.
-		mvc.perform(post("/user/forgotPassword")
-				.param(EMAIL_KEY, EMAIL_1))
-					.andExpect(status().isOk());
-		
-		// Wait for email to arrive
+		// Test full user Registration
+		test_registerUser();
         String resetPasswordUrl = MailHelper.waitForEmailAndExtractUrl(smtpServer);
-        
-        // Reset password with the wrong token
-        mvc.perform(post(resetPasswordUrl + "33")
-				.param(PASSWORD_KEY, PASSWORD_1))
-					.andExpect(status().isBadRequest());
-        
-        // Reset password
-        mvc.perform(post(resetPasswordUrl)
-				.param(PASSWORD_KEY, PASSWORD_1))
-					.andExpect(status().isOk());
-        
-		// Attempt to create a new user with the same parameters
-		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
-				.param(USERNAME_KEY, USERNAME_1)
-				.param(PASSWORD_KEY, PASSWORD_1)
-				.param(EMAIL_KEY, EMAIL_1))
-					.andExpect(status().isConflict());
+        test_completeRegistration(resetPasswordUrl);
 		
-		// Create a second User
-		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
-				.param(USERNAME_KEY, USERNAME_2)
-				.param(PASSWORD_KEY, PASSWORD_2)
-				.param(EMAIL_KEY, EMAIL_2))
-					.andExpect(status().isOk());
-		
-		// Check a mail was received. It will get enabled later in the test
+        // Register another user that will be activated later in the test.
+		registerNewUser();
         String continueRegistrationUser2Url = MailHelper.waitForEmailAndExtractUrl(smtpServer);
 		
-		/***********************
-		 * 
-		 * Quiz
-		 * 
-		 ***********************/
+		test_createQuiz();
 		
-		// Attempt to create a new Quiz without being logged on
-		mvc.perform(post(QuizController.ROOT_MAPPING)
-				.param(QUIZ_NAME_KEY, QUIZ_NAME_1)
-				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1))
-					.andExpect(status().isUnauthorized());
+		// Test the quiz creation with an user disabled/enabled
+		test_createQuiz_userEnabled(continueRegistrationUser2Url);
+    
+		test_fetchingQuizzes();
+				
+		test_updatingQuizzes();
 		
-		// Attempt to create a new Quiz with wrong credentials
-		mvc.perform(post(QuizController.ROOT_MAPPING)
-				.param(QUIZ_NAME_KEY, QUIZ_NAME_1)
-				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1)
-				.with(httpBasic("Rand", PASSWORD_1)))	
-					.andExpect(status().isUnauthorized());
+		test_listQuestions_noQuestions();
+		
+		test_createQuestions();
+		
+		test_fetchQuestions();
+		
+		test_updateQuestions();
+		
+		test_listAnswers_noAnswers();
+		
+		test_createAnswers();
+		
+		test_fetchAnswers();
+		
+		test_updateAnswers();
+		
+		test_playQuiz();
+		
+		test_deleteAnswers();
+		
+		test_deleteQuestions();
+		
+		test_deleteQuizzes();
+		
+		test_deleteUsers();
+		
+	}
 
-		// Attempt to create a new Quiz with wrong parameters
-		mvc.perform(post(QuizController.ROOT_MAPPING)
-				.param(QUIZ_NAME_KEY, "a")
-				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1)
+	private void test_deleteUsers() throws Exception {
+		// Deleting an User by an invalid user
+		mvc.perform(delete(UserController.ROOT_MAPPING + "/2")
 				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isBadRequest());
+					.andExpect(status().isUnauthorized());
 		
-		// Create a new Quiz with the first user
-		mvc.perform(post(QuizController.ROOT_MAPPING)
-				.param(QUIZ_NAME_KEY, QUIZ_NAME_1)
-				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1)
+		// Deleting an User
+		mvc.perform(delete(UserController.ROOT_MAPPING + "/2")
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isOk());
+		
+		// Ensuring it got deleted
+		mvc.perform(delete(UserController.ROOT_MAPPING + "/2")
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isUnauthorized());
+	}
+
+	private void test_deleteQuizzes() throws Exception {
+		// Deleting a Quiz by an invalid user
+		mvc.perform(delete(QuizController.ROOT_MAPPING + "/2")
 				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isCreated());
+					.andExpect(status().isUnauthorized());
 		
-		// Try to create a new Quiz with the second user, which is disabled
-		mvc.perform(post(QuizController.ROOT_MAPPING)
-				.param(QUIZ_NAME_KEY, QUIZ_NAME_2)
-				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_2)
+		// Deleting a Quiz
+		mvc.perform(delete(QuizController.ROOT_MAPPING + "/2")
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isOk());
+		
+		// Ensuring it got deleted
+		mvc.perform(delete(QuizController.ROOT_MAPPING + "/2")
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isNotFound());
+	}
+
+	private void test_deleteQuestions() throws Exception {
+		// Deleting a Question by an invalid user
+		mvc.perform(delete(QuestionController.ROOT_MAPPING + "/2")
 				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
 					.andExpect(status().isUnauthorized());
 		
-		// Activate the second user
-        mvc.perform(get(continueRegistrationUser2Url))
-			.andExpect(status().isOk());
+		// Deleting a Question
+		mvc.perform(delete(QuestionController.ROOT_MAPPING + "/2")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isOk());
 		
-        // Create a new Quiz with the second user
- 		mvc.perform(post(QuizController.ROOT_MAPPING)
- 				.param(QUIZ_NAME_KEY, QUIZ_NAME_2)
- 				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_2)
- 				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
- 					.andExpect(status().isCreated());
-    
+		// Ensuring it got deleted
+		mvc.perform(delete(QuestionController.ROOT_MAPPING + "/2")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isNotFound());
+	}
+
+	private void test_deleteAnswers() throws Exception {
+		// Deleting a Answer by an invalid user
+		mvc.perform(delete(AnswerController.ROOT_MAPPING + "/2")
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isUnauthorized());
+		
+		// Deleting a Answer
+		mvc.perform(delete(AnswerController.ROOT_MAPPING + "/2")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isOk());
+	}
+
+	private void test_playQuiz() throws Exception {
+		// Send results for non existing quiz
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/55/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content("[ { \"question\": 1, \"selectedAnswer\": 1 }]"))
+					.andExpect(status().isNotFound());
+		
+		// Send results with a missing question
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content("[ { \"question\": 1, \"selectedAnswer\": 1 }]"))
+					.andExpect(status().isBadRequest());
+		
+		// Send results with an invalid answer
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content(
+						"[ "
+						+ "{ \"question\": 1, \"selectedAnswer\": 1 },"
+						+ "{ \"question\": 2, \"selectedAnswer\": 55 }"
+						+ "]"))
+					.andExpect(status().isBadRequest());
+		
+		// Send empty results
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content("[]"))
+					.andExpect(status().isBadRequest());
+		
+		// Send correct results and check response
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content(
+						"[ "
+						+ "{ \"question\": 1, \"selectedAnswer\": 2 },"
+						+ "{ \"question\": 2, \"selectedAnswer\": 3 }"
+						+ "]"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$." + TOTAL_QUESTIONS_TEXT, Matchers.equalTo(2)))
+					.andExpect(jsonPath("$." + CORRECT_QUESTIONS_TEXT, Matchers.equalTo(1)));
+		
+		// Send results with an extra question - should be ignored
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
+				.contentType(MediaType.APPLICATION_JSON).content(
+						"[ "
+						+ "{ \"question\": 1, \"selectedAnswer\": 2 },"
+						+ "{ \"question\": 2, \"selectedAnswer\": 3 },"
+						+ "{ \"question\": 3, \"selectedAnswer\": 5 }"
+						+ "]"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$." + TOTAL_QUESTIONS_TEXT, Matchers.equalTo(2)))
+					.andExpect(jsonPath("$." + CORRECT_QUESTIONS_TEXT, Matchers.equalTo(1)));
+	}
+
+	private void test_updateAnswers() throws Exception {
+		// Update an Answer without being authenticated
+		mvc.perform(post(AnswerController.ROOT_MAPPING + "/1")
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1 + " updated"))
+					.andExpect(status().isUnauthorized());
+		
+		// Update an Answer with invalid parameters
+		mvc.perform(post(AnswerController.ROOT_MAPPING + "/1")
+				.param(ANSWER_TEXT_KEY, "")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isBadRequest());
+		
+		// Update an Answer that doesn't exist
+		mvc.perform(post(AnswerController.ROOT_MAPPING + "/55")
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1 + " updated")
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+					.andExpect(status().isNotFound());
+
+		// Update an Answer from another user
+		mvc.perform(post(AnswerController.ROOT_MAPPING + "/1")
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1 + " updated")
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isUnauthorized());
+		
+		// Update an Answer
+		mvc.perform(post(AnswerController.ROOT_MAPPING + "/1")
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1 + " updated")
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$." + ANSWER_TEXT_KEY, Matchers.containsString(ANSWER_TEXT_1 + " updated")));
+		
+		// Update an answer from another user through update all
+		mvc.perform(post(AnswerController.ROOT_MAPPING + "/updateAll")
+				.contentType(MediaType.APPLICATION_JSON).content(
+						"[ "
+						+ "{ \"id\": 4, \"text\": \"asdf\" }"
+						+ "]")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+					.andExpect(status().isUnauthorized());
+		
+		// Update and re-order two answers on one go
+		mvc.perform(post(AnswerController.ROOT_MAPPING + "/updateAll")
+				.contentType(MediaType.APPLICATION_JSON).content(
+						"[ "
+						+ "{ \"id\": 2, \"text\": \"random2\" },"
+						+ "{ \"id\": 1, \"text\": \"random1\" }"
+						+ "]")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+					.andExpect(status().isOk());
+		
+		mvc.perform(get(AnswerController.ROOT_MAPPING + "/1"))	
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.text", Matchers.containsString("random1")))
+			.andExpect(jsonPath("$.order", Matchers.is(2)));
+		
+		mvc.perform(get(AnswerController.ROOT_MAPPING + "/2"))	
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.text", Matchers.containsString("random2")))
+			.andExpect(jsonPath("$.order", Matchers.is(1)));
+	}
+
+	private void test_fetchAnswers() throws Exception {
+		// Get an Answer that doesn't exist
+		mvc.perform(get(AnswerController.ROOT_MAPPING + "/55"))	
+					.andExpect(status().isNotFound());
+		
+		// Get an Answer that exists
+		mvc.perform(get(AnswerController.ROOT_MAPPING + "/1"))	
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.id", Matchers.is(1)));
+		
+		// Get question 1's answers
+		mvc.perform(get(QuestionController.ROOT_MAPPING + "/1/answers")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(2)));
+		
+		// Get question 2's answers
+		mvc.perform(get(QuestionController.ROOT_MAPPING + "/2/answers")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(1)));
+	}
+
+	private void test_createAnswers() throws Exception {
+		// Attempt to create an new Answer without being logged on
+		mvc.perform(post(AnswerController.ROOT_MAPPING)
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
+				.param(ANSWER_QUESTION_KEY, Integer.toString(1)))
+					.andExpect(status().isUnauthorized());
+		
+		// Attempt to create an new Answer with wrong credentials
+		mvc.perform(post(AnswerController.ROOT_MAPPING)
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
+				.param(ANSWER_QUESTION_KEY, Integer.toString(1))
+				.with(httpBasic("Rand", PASSWORD_1)))	
+					.andExpect(status().isUnauthorized());
+		
+		// Attempt to create an Answer for an inexistent quiz
+		mvc.perform(post(AnswerController.ROOT_MAPPING)
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
+				.param(ANSWER_QUESTION_KEY, Integer.toString(55))
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isNotFound());
+		
+		// Attempt to question for an Answer that doesn't belong to the user/
+		mvc.perform(post(AnswerController.ROOT_MAPPING)
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
+				.param(ANSWER_QUESTION_KEY, Integer.toString(1))
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isUnauthorized());
+		
+		// Create an Answer for the first Question
+		mvc.perform(post(AnswerController.ROOT_MAPPING)
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
+				.param(ANSWER_QUESTION_KEY, Integer.toString(1))
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isCreated());
+		
+		// Add three more answers (one per question) and check we can get them through the Question Controller
+		mvc.perform(post(AnswerController.ROOT_MAPPING)
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_2)
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_2)
+				.param(ANSWER_QUESTION_KEY, Integer.toString(1))
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isCreated());
+
+		mvc.perform(post(AnswerController.ROOT_MAPPING)
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
+				.param(ANSWER_QUESTION_KEY, Integer.toString(2))
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isCreated());
+		
+		mvc.perform(post(AnswerController.ROOT_MAPPING)
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
+				.param(ANSWER_QUESTION_KEY, Integer.toString(3))
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isCreated());
+	}
+
+	private void test_listAnswers_noAnswers() throws Exception {
+		// List all Answers for an invalid Quiz
+		mvc.perform(get(QuestionController.ROOT_MAPPING + "/55/answers"))
+				.andExpect(status().isNotFound());
+		
+		// List all Answers for the first Quiz
+		mvc.perform(get(QuestionController.ROOT_MAPPING + "/2/answers"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(0)));
+	}
+
+	private void test_updateQuestions() throws Exception {
+		// Update a question without being authenticated
+		mvc.perform(post(QuestionController.ROOT_MAPPING + "/1")
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1 + " updated"))
+					.andExpect(status().isUnauthorized());
+		
+		// Update a question with invalid parameters
+		mvc.perform(post(QuestionController.ROOT_MAPPING + "/1")
+				.param(QUESTION_TEXT_KEY, "a")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isBadRequest());
+		
+		// Update a question that doesn't exist
+		mvc.perform(post(QuestionController.ROOT_MAPPING + "/55")
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1 + " updated")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+					.andExpect(status().isNotFound());
+
+		// Update a question from another user
+		mvc.perform(post(QuestionController.ROOT_MAPPING + "/1")
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1 + " updated")
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isUnauthorized());
+		
+		// Update a question
+		mvc.perform(post(QuestionController.ROOT_MAPPING + "/1")
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1 + " updated")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$." + QUESTION_TEXT_KEY, Matchers.containsString(QUESTION_TEXT_1 + " updated")));
+		
+		// Update a question from another user through update all
+		mvc.perform(post(QuestionController.ROOT_MAPPING + "/updateAll")
+				.contentType(MediaType.APPLICATION_JSON).content(
+						"[ "
+						+ "{ \"id\": 3, \"text\": \"asdf\" }"
+						+ "]")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+					.andExpect(status().isUnauthorized());
+		
+		// Update and re-order two questions on one go
+		mvc.perform(post(QuestionController.ROOT_MAPPING + "/updateAll")
+				.contentType(MediaType.APPLICATION_JSON).content(
+						"[ "
+						+ "{ \"id\": 2, \"text\": \"random2\" },"
+						+ "{ \"id\": 1, \"text\": \"random1\" }"
+						+ "]")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+					.andExpect(status().isOk());
+		
+		mvc.perform(get(QuestionController.ROOT_MAPPING + "/1"))	
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.text", Matchers.containsString("random1")))
+			.andExpect(jsonPath("$.order", Matchers.is(2)));
+		
+		mvc.perform(get(QuestionController.ROOT_MAPPING + "/2"))	
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.text", Matchers.containsString("random2")))
+			.andExpect(jsonPath("$.order", Matchers.is(1)));
+	}
+
+	private void test_fetchQuestions() throws Exception {
+		// Get a question that doesn't exist
+		mvc.perform(get(QuestionController.ROOT_MAPPING + "/55"))	
+					.andExpect(status().isNotFound());
+		
+		// Get a question that exists
+		mvc.perform(get(QuestionController.ROOT_MAPPING + "/1"))	
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.id", Matchers.is(1)));
+
+		// Get questions from Quiz 1
+		mvc.perform(get(QuizController.ROOT_MAPPING + "/1/questions")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(2)));
+		
+		// Get questions from Quiz 2
+		mvc.perform(get(QuizController.ROOT_MAPPING + "/2/questions")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(1)));
+	}
+
+	private void test_createQuestions() throws Exception {
+		// Attempt to create a new Question without being logged on
+		mvc.perform(post(QuestionController.ROOT_MAPPING)
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
+				.param(QUESTION_QUIZ_KEY, Integer.toString(1)))
+					.andExpect(status().isUnauthorized());
+		
+		// Attempt to create a new Quiz with wrong credentials
+		mvc.perform(post(QuestionController.ROOT_MAPPING)
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
+				.param(QUESTION_QUIZ_KEY, Integer.toString(1))
+				.with(httpBasic("Rand", PASSWORD_1)))	
+					.andExpect(status().isUnauthorized());
+		
+		// Attempt to create a question for an inexistent quiz
+		mvc.perform(post(QuestionController.ROOT_MAPPING)
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
+				.param(QUESTION_QUIZ_KEY, Integer.toString(55))
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isNotFound());
+		
+		// Attempt to question for a quiz that doesn't belong to the user/
+		mvc.perform(post(QuestionController.ROOT_MAPPING)
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
+				.param(QUESTION_QUIZ_KEY, Integer.toString(1))
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isUnauthorized());
+		
+		// Create a question for the first Quiz
+		mvc.perform(post(QuestionController.ROOT_MAPPING)
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
+				.param(QUESTION_QUIZ_KEY, Integer.toString(1))
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isCreated());
+		
+		// Create a second question
+		mvc.perform(post(QuestionController.ROOT_MAPPING)
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_2)
+				.param(QUESTION_QUIZ_KEY, Integer.toString(1))
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isCreated());
+		
+		// Create question with second user
+		mvc.perform(post(QuestionController.ROOT_MAPPING)
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
+				.param(QUESTION_QUIZ_KEY, Integer.toString(2))
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isCreated());
+	}
+
+	private void test_listQuestions_noQuestions() throws Exception {
+		// List all Questions for an invalid Quiz
+		mvc.perform(get(QuizController.ROOT_MAPPING + "/55/questions")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isNotFound());
+		
+		// List all Questions for the first Quiz
+		mvc.perform(get(QuizController.ROOT_MAPPING + "/2/questions")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(0)));
+	}
+
+	private void test_updatingQuizzes() throws Exception {
+		// Update a quiz without being authenticated
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/2")
+				.param(QUIZ_NAME_KEY, QUIZ_NAME_1 + " updated")
+				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1 + " updated"))	
+					.andExpect(status().isUnauthorized());
+		
+		// Update a quiz with invalid parameters
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/2")
+				.param(QUIZ_NAME_KEY, "a")
+				.param(QUIZ_DESCRIPTION_KEY, "a")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isBadRequest());
+		
+		// Update a quiz that doesn't exist
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/55")
+				.param(QUIZ_NAME_KEY, QUIZ_NAME_1 + " updated")
+				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1 + " updated")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isNotFound());
+
+		// Update a quiz from another user
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1")
+				.param(QUIZ_NAME_KEY, QUIZ_NAME_1 + " updated")
+				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1 + " updated")
+				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+					.andExpect(status().isUnauthorized());
+		
+		// Update a quiz
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/1")
+				.param(QUIZ_NAME_KEY, QUIZ_NAME_1 + " updated")
+				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1 + " updated")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$." + QUIZ_NAME_KEY, Matchers.containsString(QUIZ_NAME_1 + " updated")))
+					.andExpect(jsonPath("$." + QUIZ_DESCRIPTION_KEY, Matchers.containsString(QUIZ_DESCRIPTION_1 + " updated")));
+	}
+
+	private void test_fetchingQuizzes() throws Exception {
 		// List all Quizzes without providing credentials
 		mvc.perform(get(QuizController.ROOT_MAPPING))
 				.andExpect(status().isOk())
@@ -276,391 +660,124 @@ public class LifeCycleTest {
 		mvc.perform(get(QuizController.ROOT_MAPPING + "/1"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", Matchers.is(1)));
-				
-		// Update a quiz without being authenticated
-		mvc.perform(post(QuizController.ROOT_MAPPING + "/2")
-				.param(QUIZ_NAME_KEY, QUIZ_NAME_1 + " updated")
-				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1 + " updated"))	
-					.andExpect(status().isUnauthorized());
-		
-		// Update a quiz with invalid parameters
-		mvc.perform(post(QuizController.ROOT_MAPPING + "/2")
-				.param(QUIZ_NAME_KEY, "a")
-				.param(QUIZ_DESCRIPTION_KEY, "a")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isBadRequest());
-		
-		// Update a quiz that doesn't exist
-		mvc.perform(post(QuizController.ROOT_MAPPING + "/55")
-				.param(QUIZ_NAME_KEY, QUIZ_NAME_1 + " updated")
-				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1 + " updated")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isNotFound());
+	}
 
-		// Update a quiz from another user
-		mvc.perform(post(QuizController.ROOT_MAPPING + "/1")
-				.param(QUIZ_NAME_KEY, QUIZ_NAME_1 + " updated")
-				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1 + " updated")
+	private void test_createQuiz_userEnabled(String continueRegistrationUser2Url) throws Exception {
+		// Try to create a new Quiz with the second user, which is disabled
+		mvc.perform(post(QuizController.ROOT_MAPPING)
+				.param(QUIZ_NAME_KEY, QUIZ_NAME_2)
+				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_2)
 				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
 					.andExpect(status().isUnauthorized());
 		
-		// Update a quiz
-		mvc.perform(post(QuizController.ROOT_MAPPING + "/1")
-				.param(QUIZ_NAME_KEY, QUIZ_NAME_1 + " updated")
-				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1 + " updated")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$." + QUIZ_NAME_KEY, Matchers.containsString(QUIZ_NAME_1 + " updated")))
-					.andExpect(jsonPath("$." + QUIZ_DESCRIPTION_KEY, Matchers.containsString(QUIZ_DESCRIPTION_1 + " updated")));
+		// Activate the second user
+        mvc.perform(get(continueRegistrationUser2Url))
+			.andExpect(status().isOk());
 		
-		// List all Questions for an invalid Quiz
-		mvc.perform(get(QuizController.ROOT_MAPPING + "/55/questions")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))
-				.andExpect(status().isNotFound());
-		
-		// List all Questions for the first Quiz
-		mvc.perform(get(QuizController.ROOT_MAPPING + "/2/questions")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(0)));
-		
-		/***********************
-		 * 
-		 * Question Controller
-		 * 
-		 ***********************/
-		
-		// Attempt to create a new Question without being logged on
-		mvc.perform(post(QuestionController.ROOT_MAPPING)
-				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
-				.param(QUESTION_QUIZ_KEY, Integer.toString(1)))
+        // Create a new Quiz with the second user
+ 		mvc.perform(post(QuizController.ROOT_MAPPING)
+ 				.param(QUIZ_NAME_KEY, QUIZ_NAME_2)
+ 				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_2)
+ 				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+ 					.andExpect(status().isCreated());
+	}
+
+	private void test_createQuiz() throws Exception {
+		// Attempt to create a new Quiz without being logged on
+		mvc.perform(post(QuizController.ROOT_MAPPING)
+				.param(QUIZ_NAME_KEY, QUIZ_NAME_1)
+				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1))
 					.andExpect(status().isUnauthorized());
 		
 		// Attempt to create a new Quiz with wrong credentials
-		mvc.perform(post(QuestionController.ROOT_MAPPING)
-				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
-				.param(QUESTION_QUIZ_KEY, Integer.toString(1))
+		mvc.perform(post(QuizController.ROOT_MAPPING)
+				.param(QUIZ_NAME_KEY, QUIZ_NAME_1)
+				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1)
 				.with(httpBasic("Rand", PASSWORD_1)))	
 					.andExpect(status().isUnauthorized());
-		
-		// Attempt to create a question for an inexistent quiz
-		mvc.perform(post(QuestionController.ROOT_MAPPING)
-				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
-				.param(QUESTION_QUIZ_KEY, Integer.toString(55))
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isNotFound());
-		
-		// Attempt to question for a quiz that doesn't belong to the user/
-		mvc.perform(post(QuestionController.ROOT_MAPPING)
-				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
-				.param(QUESTION_QUIZ_KEY, Integer.toString(1))
-				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
-					.andExpect(status().isUnauthorized());
-		
-		// Create a question for the first Quiz
-		mvc.perform(post(QuestionController.ROOT_MAPPING)
-				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
-				.param(QUESTION_QUIZ_KEY, Integer.toString(1))
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isCreated());
-		
-		// Get a question that doesn't exist
-		mvc.perform(get(QuestionController.ROOT_MAPPING + "/55"))	
-					.andExpect(status().isNotFound());
-		
-		// Get a question that exists
-		mvc.perform(get(QuestionController.ROOT_MAPPING + "/1"))	
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.id", Matchers.is(1)));
-		
-		// Add two more questions (one per user) and check we can get them through the Quiz Controller
-		mvc.perform(post(QuestionController.ROOT_MAPPING)
-				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_2)
-				.param(QUESTION_QUIZ_KEY, Integer.toString(1))
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isCreated());
 
-		mvc.perform(post(QuestionController.ROOT_MAPPING)
-				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
-				.param(QUESTION_QUIZ_KEY, Integer.toString(2))
-				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
-					.andExpect(status().isCreated());
-		
-		mvc.perform(get(QuizController.ROOT_MAPPING + "/1/questions")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(2)));
-		
-		mvc.perform(get(QuizController.ROOT_MAPPING + "/2/questions")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(1)));
-		
-		// Update a question without being authenticated
-		mvc.perform(post(QuestionController.ROOT_MAPPING + "/1")
-				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1 + " updated"))
-					.andExpect(status().isUnauthorized());
-		
-		// Update a question with invalid parameters
-		mvc.perform(post(QuestionController.ROOT_MAPPING + "/1")
-				.param(QUESTION_TEXT_KEY, "a")
+		// Attempt to create a new Quiz with wrong parameters
+		mvc.perform(post(QuizController.ROOT_MAPPING)
+				.param(QUIZ_NAME_KEY, "a")
+				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1)
 				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
 					.andExpect(status().isBadRequest());
 		
-		// Update a question that doesn't exist
-		mvc.perform(post(QuestionController.ROOT_MAPPING + "/55")
-				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1 + " updated")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))
-					.andExpect(status().isNotFound());
+		// Create a new Quiz with the first user
+		mvc.perform(post(QuizController.ROOT_MAPPING)
+				.param(QUIZ_NAME_KEY, QUIZ_NAME_1)
+				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1)
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isCreated());
+	}
 
-		// Update a question from another user
-		mvc.perform(post(QuestionController.ROOT_MAPPING + "/1")
-				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1 + " updated")
-				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
-					.andExpect(status().isUnauthorized());
-		
-		// Update a question
-		mvc.perform(post(QuestionController.ROOT_MAPPING + "/1")
-				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1 + " updated")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$." + QUESTION_TEXT_KEY, Matchers.containsString(QUESTION_TEXT_1 + " updated")));
-		
-		// List all Answers for an invalid Quiz
-		mvc.perform(get(QuestionController.ROOT_MAPPING + "/55/answers"))
-				.andExpect(status().isNotFound());
-		
-		// List all Answers for the first Quiz
-		mvc.perform(get(QuestionController.ROOT_MAPPING + "/2/answers"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(0)));
-		
-		/***********************
-		 * 
-		 * Answer Controller
-		 * 
-		 ***********************/
-		
-		// Attempt to create an new Answer without being logged on
-		mvc.perform(post(AnswerController.ROOT_MAPPING)
-				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
-				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
-				.param(ANSWER_QUESTION_KEY, Integer.toString(1)))
-					.andExpect(status().isUnauthorized());
-		
-		// Attempt to create an new Answer with wrong credentials
-		mvc.perform(post(AnswerController.ROOT_MAPPING)
-				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
-				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
-				.param(ANSWER_QUESTION_KEY, Integer.toString(1))
-				.with(httpBasic("Rand", PASSWORD_1)))	
-					.andExpect(status().isUnauthorized());
-		
-		// Attempt to create an Answer for an inexistent quiz
-		mvc.perform(post(AnswerController.ROOT_MAPPING)
-				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
-				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
-				.param(ANSWER_QUESTION_KEY, Integer.toString(55))
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isNotFound());
-		
-		// Attempt to question for an Answer that doesn't belong to the user/
-		mvc.perform(post(AnswerController.ROOT_MAPPING)
-				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
-				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
-				.param(ANSWER_QUESTION_KEY, Integer.toString(1))
-				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
-					.andExpect(status().isUnauthorized());
-		
-		// Create an Answer for the first Question
-		mvc.perform(post(AnswerController.ROOT_MAPPING)
-				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
-				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
-				.param(ANSWER_QUESTION_KEY, Integer.toString(1))
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isCreated());
-		
-		// Get an Answer that doesn't exist
-		mvc.perform(get(AnswerController.ROOT_MAPPING + "/55"))	
-					.andExpect(status().isNotFound());
-		
-		// Get an Answer that exists
-		mvc.perform(get(AnswerController.ROOT_MAPPING + "/1"))	
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.id", Matchers.is(1)));
-		
-		// Add two more answers (one per question) and check we can get them through the Question Controller
-		mvc.perform(post(AnswerController.ROOT_MAPPING)
-				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_2)
-				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_2)
-				.param(ANSWER_QUESTION_KEY, Integer.toString(1))
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isCreated());
+	private void registerNewUser() throws Exception {
+		// Create a second User
+		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
+				.param(USERNAME_KEY, USERNAME_2)
+				.param(PASSWORD_KEY, PASSWORD_2)
+				.param(EMAIL_KEY, EMAIL_2))
+					.andExpect(status().isOk());
+	}
 
-		mvc.perform(post(AnswerController.ROOT_MAPPING)
-				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
-				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
-				.param(ANSWER_QUESTION_KEY, Integer.toString(2))
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isCreated());
-		
-		mvc.perform(get(QuestionController.ROOT_MAPPING + "/1/answers")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(2)));
-		
-		mvc.perform(get(QuestionController.ROOT_MAPPING + "/2/answers")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(1)));
-		
-		// Update an Answer without being authenticated
-		mvc.perform(post(AnswerController.ROOT_MAPPING + "/1")
-				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1 + " updated"))
-					.andExpect(status().isUnauthorized());
-		
-		// Update an Answer with invalid parameters
-		mvc.perform(post(AnswerController.ROOT_MAPPING + "/1")
-				.param(ANSWER_TEXT_KEY, "")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+	private void test_completeRegistration(String resetPasswordUrl) throws Exception {
+		// Reset password with the wrong token
+        mvc.perform(post(resetPasswordUrl + "33")
+				.param(PASSWORD_KEY, PASSWORD_1))
 					.andExpect(status().isBadRequest());
-		
-		// Update an Answer that doesn't exist
-		mvc.perform(post(AnswerController.ROOT_MAPPING + "/55")
-				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1 + " updated")
-				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))
-					.andExpect(status().isNotFound());
+        
+        // Reset password
+        mvc.perform(post(resetPasswordUrl)
+				.param(PASSWORD_KEY, PASSWORD_1))
+					.andExpect(status().isOk());
+        
+		// Attempt to create a new user with the same parameters
+		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
+				.param(USERNAME_KEY, USERNAME_1)
+				.param(PASSWORD_KEY, PASSWORD_1)
+				.param(EMAIL_KEY, EMAIL_1))
+					.andExpect(status().isConflict());
+	}
 
-		// Update an Answer from another user
-		mvc.perform(post(AnswerController.ROOT_MAPPING + "/1")
-				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1 + " updated")
-				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
-				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
-					.andExpect(status().isUnauthorized());
-		
-		// Update an Answer
-		mvc.perform(post(AnswerController.ROOT_MAPPING + "/1")
-				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1 + " updated")
-				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$." + ANSWER_TEXT_KEY, Matchers.containsString(ANSWER_TEXT_1 + " updated")));
-		
-		/***********************
-		 * 
-		 * Play a quiz
-		 * 
-		 ***********************/
-		
-		// Send results for non existing quiz
-		mvc.perform(post(QuizController.ROOT_MAPPING + "/55/submitAnswers")
-				.contentType(MediaType.APPLICATION_JSON).content("[ { \"question\": 1, \"selectedAnswer\": 1 }]"))
-					.andExpect(status().isNotFound());
-		
-		// Send results with a missing question
-		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
-				.contentType(MediaType.APPLICATION_JSON).content("[ { \"question\": 1, \"selectedAnswer\": 1 }]"))
+	private void test_registerUser() throws Exception, IOException, MessagingException {
+		// Attempt to create an User with invalid parameters
+		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
+				.param(USERNAME_KEY, USERNAME_1)
+				.param(PASSWORD_KEY, PASSWORD_1_OLD)
+				.param(EMAIL_KEY, "aom"))
 					.andExpect(status().isBadRequest());
 		
-		// Send results with an invalid answer
-		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
-				.contentType(MediaType.APPLICATION_JSON).content(
-						"[ "
-						+ "{ \"question\": 1, \"selectedAnswer\": 1 },"
-						+ "{ \"question\": 2, \"selectedAnswer\": 55 }"
-						+ "]"))
-					.andExpect(status().isBadRequest());
-		
-		// Send empty results
-		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
-				.contentType(MediaType.APPLICATION_JSON).content("[]"))
-					.andExpect(status().isBadRequest());
-		
-		// Send correct results and check response
-		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
-				.contentType(MediaType.APPLICATION_JSON).content(
-						"[ "
-						+ "{ \"question\": 1, \"selectedAnswer\": 2 },"
-						+ "{ \"question\": 2, \"selectedAnswer\": 3 }"
-						+ "]"))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$." + TOTAL_QUESTIONS_TEXT, Matchers.equalTo(2)))
-					.andExpect(jsonPath("$." + CORRECT_QUESTIONS_TEXT, Matchers.equalTo(1)));
-		
-		// Send results with an extra question - should be ignored
-		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
-				.contentType(MediaType.APPLICATION_JSON).content(
-						"[ "
-						+ "{ \"question\": 1, \"selectedAnswer\": 2 },"
-						+ "{ \"question\": 2, \"selectedAnswer\": 3 },"
-						+ "{ \"question\": 3, \"selectedAnswer\": 5 }"
-						+ "]"))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$." + TOTAL_QUESTIONS_TEXT, Matchers.equalTo(2)))
-					.andExpect(jsonPath("$." + CORRECT_QUESTIONS_TEXT, Matchers.equalTo(1)));
-		
-		/***********************
-		 * 
-		 * Deleting assets
-		 * 
-		 ***********************/
-		
-		// Deleting a Answer by an invalid user
-		mvc.perform(delete(AnswerController.ROOT_MAPPING + "/2")
-				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
-					.andExpect(status().isUnauthorized());
-		
-		// Deleting a Answer
-		mvc.perform(delete(AnswerController.ROOT_MAPPING + "/2")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+		// Create a new User
+		mvc.perform(post(UserController.ROOT_MAPPING + "/registration")
+				.param(USERNAME_KEY, USERNAME_1)
+				.param(PASSWORD_KEY, PASSWORD_1_OLD)
+				.param(EMAIL_KEY, EMAIL_1))
 					.andExpect(status().isOk());
 		
-		// Deleting a Question by an invalid user
-		mvc.perform(delete(QuestionController.ROOT_MAPPING + "/2")
-				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
-					.andExpect(status().isUnauthorized());
-		
-		// Deleting a Question
-		mvc.perform(delete(QuestionController.ROOT_MAPPING + "/2")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+		// Check a mail was received
+        String continueRegistrationUrl = MailHelper.waitForEmailAndExtractUrl(smtpServer);
+        
+        // Activate the user with the wrong token
+        mvc.perform(get(continueRegistrationUrl + "33"))
+					.andExpect(status().isBadRequest());
+        
+        // Activate the user
+        mvc.perform(get(continueRegistrationUrl))
+			.andExpect(status().isOk());
+        
+        // Invoke forgot password with an inexistent mail.
+        // Shouldn't fail, but it shouldn't send an email.
+		mvc.perform(post("/user/forgotPassword")
+				.param(EMAIL_KEY, "invalid@mail.com"))
 					.andExpect(status().isOk());
 		
-		// Ensuring it got deleted
-		mvc.perform(delete(QuestionController.ROOT_MAPPING + "/2")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isNotFound());
+		smtpServer.waitForIncomingEmail(1);
+		assertEquals(0, smtpServer.getReceivedMessages().length);
 		
-		// Deleting a Quiz by an invalid user
-		mvc.perform(delete(QuizController.ROOT_MAPPING + "/2")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isUnauthorized());
-		
-		// Deleting a Quiz
-		mvc.perform(delete(QuizController.ROOT_MAPPING + "/2")
-				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
+		// Invoke forgot password with a valid email.
+		mvc.perform(post("/user/forgotPassword")
+				.param(EMAIL_KEY, EMAIL_1))
 					.andExpect(status().isOk());
-		
-		// Ensuring it got deleted
-		mvc.perform(delete(QuizController.ROOT_MAPPING + "/2")
-				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
-					.andExpect(status().isNotFound());
-		
-		// Deleting an User by an invalid user
-		mvc.perform(delete(UserController.ROOT_MAPPING + "/2")
-				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
-					.andExpect(status().isUnauthorized());
-		
-		// Deleting an User
-		mvc.perform(delete(UserController.ROOT_MAPPING + "/2")
-				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
-					.andExpect(status().isOk());
-		
-		// Ensuring it got deleted
-		mvc.perform(delete(UserController.ROOT_MAPPING + "/2")
-				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
-					.andExpect(status().isUnauthorized());
-		
 	}
 	
 }

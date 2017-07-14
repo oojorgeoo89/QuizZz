@@ -1,6 +1,9 @@
 package jorge.rv.QuizZz.unitTests.service;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -151,7 +154,7 @@ public class QuestionServiceTests {
 	
 	@Test
 	public void testFindAnswersByQuestionWithAvailableQuestionAndEmptyQuestions() throws ResourceUnavailableException {
-		question.setAnswers(new ArrayList<Answer>());
+		when(answerService.findQuestionsByQuiz(question)).thenReturn(new ArrayList<>());
 		when(questionRepository.findOne(question.getId())).thenReturn(question);
 		
 		List<Answer> answers = service.findAnswersByQuestion(question.getId());
@@ -166,7 +169,7 @@ public class QuestionServiceTests {
 		originalAnswers.add(new Answer());
 		originalAnswers.add(new Answer());
 		
-		question.setAnswers(originalAnswers);
+		when(answerService.findQuestionsByQuiz(question)).thenReturn(originalAnswers);
 		when(questionRepository.findOne(question.getId())).thenReturn(question);
 		
 		List<Answer> answers = service.findAnswersByQuestion(question.getId());

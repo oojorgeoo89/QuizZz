@@ -1,6 +1,6 @@
 (function() {
 
-	var app = angular.module("editAnswersApp", []);
+	var app = angular.module("editAnswersApp", ['dndLists']);
 
 	var editAnswersCtrl = function($scope, $http) {
 
@@ -35,6 +35,21 @@
 							$scope.answers.push(response.data);
 							$scope.newAnswer = "";
 						}
+					}, 
+					function(reason) {
+						console.log(reason.data);
+					}
+			);
+		}
+		
+		$scope.saveAll = function() {
+			var url = "/api/answers/updateAll";
+
+			$http.post(url + "?question_id=" + $scope.questionId,
+				JSON.stringify($scope.answers))
+			.then(
+					function(response) {
+						console.log(response.data);
 					}, 
 					function(reason) {
 						console.log(reason.data);

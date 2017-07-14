@@ -1,5 +1,7 @@
 package jorge.rv.quizzz.service;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Answer;
+import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.repository.AnswerRepository;
 
 @Service("AnswerService")
@@ -38,6 +41,9 @@ public class AnswerServiceImpl implements AnswerService {
 	@Override
 	@Transactional
 	public Answer save(Answer answer) throws UnauthorizedActionException {
+		int count = answerRepository.countByQuestion(answer.getQuestion());
+		answer.setOrder(count + 1);
+		
 		return answerRepository.save(answer);
 	}
 
@@ -61,11 +67,20 @@ public class AnswerServiceImpl implements AnswerService {
 	private void mergeAnswers(Answer currentAnswer, Answer newAnswer) {
 		currentAnswer.setText(newAnswer.getText());
 		currentAnswer.setIscorrect(newAnswer.getIscorrect());
+		
+		if (newAnswer.getOrder() != null) {
+			currentAnswer.setOrder(newAnswer.getOrder());
+		}
 	}
 
 	@Override
 	public Boolean checkAnswer(Answer answer) {
 		return answer.getIscorrect();
+	}
+
+	@Override
+	public List<Answer> findQuestionsByQuiz(Question question) {
+		return answerRepository.findByQuestionOrderByOrderAsc(question);
 	}
 
 }

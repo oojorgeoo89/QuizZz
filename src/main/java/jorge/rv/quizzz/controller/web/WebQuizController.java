@@ -16,8 +16,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import jorge.rv.quizzz.controller.utils.RestVerifier;
 import jorge.rv.quizzz.exceptions.ModelVerificationException;
-import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
-import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.AuthenticatedUser;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
@@ -68,7 +66,7 @@ public class WebQuizController {
 	
 	@RequestMapping(value = "/editQuiz/{quiz_id}", method = RequestMethod.GET)
 	@PreAuthorize("isAuthenticated()")
-	public ModelAndView editQuiz(@PathVariable long quiz_id) throws ResourceUnavailableException, UnauthorizedActionException {
+	public ModelAndView editQuiz(@PathVariable long quiz_id) {
 		Quiz quiz = quizService.find(quiz_id);
 		accessControlServiceQuiz.canCurrentUserUpdateObject(quiz);
 		
@@ -81,7 +79,7 @@ public class WebQuizController {
 	
 	@RequestMapping(value = "/editAnswer/{question_id}", method = RequestMethod.GET)
 	@PreAuthorize("isAuthenticated()")
-	public ModelAndView editAnswer(@PathVariable long question_id) throws ResourceUnavailableException, UnauthorizedActionException {
+	public ModelAndView editAnswer(@PathVariable long question_id) {
 		Question question = questionService.find(question_id);
 		accessControlServiceQuestion.canCurrentUserUpdateObject(question);
 		
