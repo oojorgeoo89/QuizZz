@@ -27,6 +27,9 @@ public class Question extends BaseModel implements UserOwned {
 	@JsonIgnore
 	private Quiz quiz;
 	
+	@Column(name = "q_order")
+	private Integer order;
+	
 	@OneToMany(mappedBy="question", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
 	private List<Answer> answers;
 	
@@ -65,6 +68,14 @@ public class Question extends BaseModel implements UserOwned {
 	@JsonIgnore
 	public User getUser() {
 		return quiz.getUser();
+	}
+
+	public Integer getOrder() {
+		return order;
+	}
+
+	public void setOrder(Integer order) {
+		this.order = order;
 	}
 
 }

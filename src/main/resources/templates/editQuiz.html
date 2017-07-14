@@ -26,7 +26,7 @@
 				        <label th:text="#{label.newquiz.description}">Description</label>
 				        <textarea th:placeholder="#{label.newquiz.description.placeholder}" name="description" class="form-control" rows="3" ng-model="quizDescription" > </textarea>
 				        <br/>
-				        <button th:text="#{label.editquiz.submit}" class="btn btn-lg btn-primary btn-block" type="submit"  ng-click="saveQuiz(quizName, quizDescription)">Update</button>
+				        <button th:text="#{label.editquiz.submit.saveQuiz}" class="btn btn-lg btn-primary btn-block" type="submit"  ng-click="saveQuiz()">Update</button>
 			        </div>
 			        
 			        <br/>
@@ -34,38 +34,56 @@
 					<br/>
 			        
 			        <div class="form-group">
-			        	<table class="table" align="center">
-							<tbody>
-								<tr ng-repeat="question in questions">
-									<td width="80%">
-										<input th:placeholder="#{label.editquiz.text.placeholder}" class="form-control" ng-model="question.text"/>
-									</td>
-									<td>
-										<div class="btn-group">
-											<button class="btn btn-primary" ng-click="saveQuestion(question.id, question.text)">
-												<span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
-											</button>
-											<a href="/editAnswer/{{question.id}}" class="btn btn-primary">
-												<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-											</a>
-											<button class="btn btn-primary" ng-click="deleteQuestion(question.id)">
-												<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-											</button>
-										</div>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<input th:placeholder="#{label.editquiz.text.placeholder}" class="form-control" ng-model="newQuestion"/>
-									</td>
-									<td>
-										<button class="btn btn-primary" ng-click="saveQuestion(0, newQuestion)">
-											<span class="glyphicon glyphicon-floppy-disk" aria-hidden="false"></span>
+			        	<ul dnd-list="questions" style="list-style: none">
+			        	
+							<li ng-repeat="question in questions" 
+							    dnd-draggable="question" 
+							    dnd-moved="questions.splice($index, 1)"
+							    dnd-effect-allowed="move">
+								
+								<div class="col-sm-9">
+									<div class="input-group">
+										<span class="input-group-addon" id="draggable-addon">::</span>
+										<input th:placeholder="#{label.editquiz.text.placeholder}" class="form-control"  aria-describedby="draggable-addon" ng-model="question.text"/>
+									</div>
+								</div>
+								<div class="col-sm-3">
+									<div class="btn-group">
+										<button class="btn btn-primary" ng-click="saveQuestion(question.id, question.text)">
+											<span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
 										</button>
-									</td>
-								</tr>		
-							</tbody>
-						</table>
+										<a href="/editAnswer/{{question.id}}" class="btn btn-primary">
+											<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+										</a>
+										<button class="btn btn-primary" ng-click="deleteQuestion(question.id)">
+											<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+										</button>
+									</div>
+								</div>
+							</li>
+							<li class="dndPlaceholder">
+						        <p>Drop here...</p>
+						    </li>
+						</ul>
+						<ul style="list-style: none;">
+							<li>
+								<div class="col-sm-9">
+									<div class="input-group">
+										<span class="input-group-addon" id="not-draggable-addon">X</span>
+										<input th:placeholder="#{label.editquiz.text.placeholder}" class="form-control"  aria-describedby="not-draggable-addon" ng-model="newQuestion"/>
+									</div>
+								</div>
+								<div class="col-sm-3">
+									<button class="btn btn-primary" ng-click="saveQuestion(0, newQuestion)">
+										<span class="glyphicon glyphicon-floppy-disk" aria-hidden="false"></span>
+									</button>
+								</div>
+							</li>
+						</ul>
+						
+			        </div>
+			        <div>
+						<button th:text="#{label.editquiz.submit.saveAll}" class="btn btn-lg btn-primary btn-block" type="submit"  ng-click="saveAll()">Update</button>
 			        </div>
 				</form>  
 				<!-- Remove this when footer is added -->
@@ -78,6 +96,8 @@
 	</div>
 
 	<div th:replace="fragments/angular :: angular"></div>
+	<script type="text/javascript" src="../js/angular-drag-and-drop-lists.min.js"
+		        th:src="@{/js/angular-drag-and-drop-lists.min.js}"></script>	
 	<script type="text/javascript" src="../js/editApp.js"
 		        th:src="@{/js/editApp.js}"></script>
 		        

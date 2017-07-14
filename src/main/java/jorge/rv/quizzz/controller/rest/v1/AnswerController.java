@@ -68,7 +68,8 @@ public class AnswerController {
 		
 		RestVerifier.verifyModelResult(result);
 		
-		return answerService.update(answer_id, answer);
+		answer.setId(answer_id);
+		return answerService.update(answer);
 	}
 	
 	@RequestMapping(value = "/{answer_id}", method = RequestMethod.DELETE)

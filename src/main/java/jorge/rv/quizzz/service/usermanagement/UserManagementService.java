@@ -4,7 +4,7 @@ import jorge.rv.quizzz.model.User;
 
 public interface UserManagementService {
 
-	void ResendPassword(User user);
+	void resendPassword(User user);
 	void verifyResetPasswordToken(User user, String token);
 	void updatePassword(User user, String password);
 	

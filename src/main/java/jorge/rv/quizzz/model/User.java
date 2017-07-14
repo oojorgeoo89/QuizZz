@@ -1,5 +1,6 @@
 package jorge.rv.quizzz.model;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Set;
 
@@ -18,8 +19,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "user")
-public class User extends BaseModel implements UserOwned {
+public class User extends BaseModel implements UserOwned, Serializable {
 	
+	private static final long serialVersionUID = 1L;
+
 	@Column(name = "email")
 	@Email(message = "Please provide a valid Email")
 	@NotEmpty(message = "Please provide an email")

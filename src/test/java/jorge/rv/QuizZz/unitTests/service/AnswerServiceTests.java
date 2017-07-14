@@ -86,7 +86,7 @@ public class AnswerServiceTests {
 		
 		when(answerRepository.findOne(answer.getId())).thenReturn(answer);
 		when(answerRepository.save(answer)).thenReturn(answer);
-		Answer returned = service.update(answer.getId(), answer);
+		Answer returned = service.update(answer);
 		
 		verify(answerRepository, times(1)).save(answer);
 		assertEquals(returned.getText(), answer.getText());
@@ -98,7 +98,7 @@ public class AnswerServiceTests {
 		
 		when(answerRepository.findOne(answer.getId())).thenReturn(null);
 		
-		service.update(answer.getId(), answer);
+		service.update(answer);
 	}
 	
 	@Test(expected = UnauthorizedActionException.class)
@@ -109,7 +109,7 @@ public class AnswerServiceTests {
 		doThrow(new UnauthorizedActionException())
 			.when(answerRepository).save(answer);
 		
-		service.update(answer.getId(), answer);
+		service.update(answer);
 	}
 	
 	// Delete

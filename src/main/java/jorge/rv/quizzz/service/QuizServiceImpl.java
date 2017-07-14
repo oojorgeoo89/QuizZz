@@ -39,7 +39,6 @@ public class QuizServiceImpl implements QuizService {
 	public Quiz save(Quiz quiz, User user) {
 		quiz.setCreatedBy(user);
 		Quiz q = quizRepository.save(quiz);
-		System.out.println("caraculo" + quiz.getId());
 		return q;
 	}
 
@@ -64,8 +63,8 @@ public class QuizServiceImpl implements QuizService {
 
 	@Override
 	@Transactional
-	public Quiz update(Long id, Quiz newQuiz) throws UnauthorizedActionException, ResourceUnavailableException {
-		Quiz currentQuiz = find(id);
+	public Quiz update(Quiz newQuiz) throws UnauthorizedActionException, ResourceUnavailableException {
+		Quiz currentQuiz = find(newQuiz.getId());
 		
 		mergeQuizzes(currentQuiz, newQuiz);
 		return quizRepository.save(currentQuiz);
@@ -83,7 +82,8 @@ public class QuizServiceImpl implements QuizService {
 	@Transactional
 	public List<Question> findQuestionsByQuiz(Long id) throws ResourceUnavailableException {
 		Quiz q = find(id);
-		return q.getQuestions();
+		
+		return questionService.findQuestionsByQuiz(q);
 	}	
 
 	private void mergeQuizzes(Quiz currentQuiz, Quiz newQuiz) {
@@ -109,7 +109,7 @@ public class QuizServiceImpl implements QuizService {
 		for (Question question : quiz.getQuestions()) {
 			boolean isFound = false;
 			for (AnswersBundle bundle : answersBundle) {
-				if (bundle.getQuestion() == question.getId()) {
+				if (bundle.getQuestion().equals(question.getId())) {
 					isFound = true;
 					results.addAnswer(questionService.checkAnswer(question, bundle.getSelectedAnswer()));
 					break;

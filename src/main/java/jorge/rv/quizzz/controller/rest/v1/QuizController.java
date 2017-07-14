@@ -79,7 +79,9 @@ public class QuizController {
 			throws ResourceUnavailableException, UnauthorizedActionException, ModelVerificationException {
 		
 		RestVerifier.verifyModelResult(result);
-		return quizService.update(quiz_id, quiz);
+		
+		quiz.setId(quiz_id);
+		return quizService.update(quiz);
 	}
 	
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.DELETE)
@@ -102,6 +104,7 @@ public class QuizController {
 	
 	@RequestMapping(value = "/{quiz_id}/submitAnswers", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
+	@ResponseStatus(HttpStatus.OK)
 	public Results playQuiz(@PathVariable long quiz_id, @RequestBody List<AnswersBundle> answersBundle) {
 		return quizService.checkAnswers(quiz_id, answersBundle);
 	}

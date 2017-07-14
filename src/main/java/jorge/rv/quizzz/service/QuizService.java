@@ -17,7 +17,7 @@ public interface QuizService {
 	Quiz save(Quiz quiz, User user);
 	Page<Quiz> findAll(Pageable pageable);
 	Quiz find(Long id) throws ResourceUnavailableException;
-	Quiz update(Long id, Quiz quiz) throws ResourceUnavailableException, UnauthorizedActionException;
+	Quiz update(Quiz quiz) throws ResourceUnavailableException, UnauthorizedActionException;
 	void delete(Long id) throws ResourceUnavailableException, UnauthorizedActionException;
 	
 	List<Question> findQuestionsByQuiz(Long id) throws ResourceUnavailableException;

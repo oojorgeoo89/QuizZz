@@ -45,7 +45,7 @@ public class UserManagementController {
 	public ModelAndView forgotPassword(String email) {
 		try {
 			User user = userService.findByEmail(email);
-			userManagementService.ResendPassword(user);
+			userManagementService.resendPassword(user);
 		} catch (ResourceUnavailableException e) {
 			// Ignoring Username not found to avoid showing whether the user exists or not
 		}

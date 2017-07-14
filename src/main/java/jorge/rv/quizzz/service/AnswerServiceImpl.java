@@ -43,8 +43,8 @@ public class AnswerServiceImpl implements AnswerService {
 
 	@Override
 	@Transactional
-	public Answer update(Long id, Answer newAnswer) throws ResourceUnavailableException, UnauthorizedActionException {
-		Answer currentAnswer = find(id);
+	public Answer update(Answer newAnswer) throws ResourceUnavailableException, UnauthorizedActionException {
+		Answer currentAnswer = find(newAnswer.getId());
 		
 		mergeAnswers(currentAnswer, newAnswer); 
 		return answerRepository.save(currentAnswer);

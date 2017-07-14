@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,6 +53,18 @@ public class QuestionController {
 		return questionService.save(question);
 	}
 	
+	@RequestMapping(value = "/updateAll", method = RequestMethod.POST)
+	@PreAuthorize("isAuthenticated()")
+	@ResponseStatus(HttpStatus.OK)
+	public void updateAll(@RequestBody List<Question> questions, @RequestParam Long quiz_id) {
+		for (int i=0; i<questions.size(); i++) {
+			Question question = questions.get(i);
+			question.setOrder(i+1);
+			
+			questionService.update( question);
+		}
+	}
+	
 	@RequestMapping(value = "/{question_id}", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
@@ -70,7 +83,9 @@ public class QuestionController {
 									throws ResourceUnavailableException, UnauthorizedActionException, ModelVerificationException {
 		
 		RestVerifier.verifyModelResult(result);
-		return questionService.update(question_id, question);
+		
+		question.setId(question_id);
+		return questionService.update(question);
 			
 	}
 	

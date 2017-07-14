@@ -13,6 +13,7 @@ import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Answer;
 import jorge.rv.quizzz.model.Question;
+import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.repository.QuestionRepository;
 
 @Service("QuestionService")
@@ -32,6 +33,9 @@ public class QuestionServiceImpl implements QuestionService {
 	@Override
 	@Transactional
 	public Question save(Question question) throws UnauthorizedActionException {
+		int count = questionRepository.countByQuiz(question.getQuiz());
+		question.setOrder(count + 1);
+		
 		return questionRepository.save(question);
 	}
 	
@@ -50,8 +54,8 @@ public class QuestionServiceImpl implements QuestionService {
 
 	@Override
 	@Transactional
-	public Question update(Long id, Question newQuestion) throws ResourceUnavailableException, UnauthorizedActionException {
-		Question currentQuestion = find(id);
+	public Question update(Question newQuestion) throws ResourceUnavailableException, UnauthorizedActionException {
+		Question currentQuestion = find(newQuestion.getId());
 		
 		mergeQuestions(currentQuestion, newQuestion);
 		return questionRepository.save(currentQuestion);
@@ -74,17 +78,25 @@ public class QuestionServiceImpl implements QuestionService {
 
 	private void mergeQuestions(Question currentQuestion, Question newQuestion) {
 		currentQuestion.setText(newQuestion.getText());
+		
+		if (newQuestion.getOrder() != null)
+			currentQuestion.setOrder(newQuestion.getOrder());
 	}
 
 	@Override
 	public Boolean checkAnswer(Question question, Long selectedAnswer) {
 		for (Answer answer : question.getAnswers()) {
-			if (answer.getId() == selectedAnswer) {
+			if (answer.getId().equals(selectedAnswer)) {
 				return answerService.checkAnswer(answer);
 			}
 		}
 		
 		throw new InvalidParametersException("The answer '" + selectedAnswer + "' is not available");
+	}
+
+	@Override
+	public List<Question> findQuestionsByQuiz(Quiz quiz) {
+		return questionRepository.findByQuizOrderByOrderAsc(quiz);
 	}
 
 }

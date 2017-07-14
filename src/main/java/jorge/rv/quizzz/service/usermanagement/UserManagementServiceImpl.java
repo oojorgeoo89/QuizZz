@@ -28,7 +28,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 	}
 
 	@Override
-	public void ResendPassword(User user) {
+	public void resendPassword(User user) {
 		ForgotPasswordToken token = forgotPasswordService.generateTokenForUser(user);
 		tokenDeliveryService.sendTokenToUser(token, user, TokenType.FORGOT_PASSWORD);	
 	}

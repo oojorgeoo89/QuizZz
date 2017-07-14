@@ -51,7 +51,7 @@ public class UserManagementServiceTests {
 		 
 		when(tokenService.generateTokenForUser(user)).thenReturn(token);
 		
-		userManagementService.ResendPassword(user);
+		userManagementService.resendPassword(user);
 		
 		verify(tokenDeliverySystem, times(1)).sendTokenToUser(token, user, TokenType.FORGOT_PASSWORD);
 		

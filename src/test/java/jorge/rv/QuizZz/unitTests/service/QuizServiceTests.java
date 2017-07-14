@@ -176,7 +176,7 @@ public class QuizServiceTests {
 		
 		when(quizRepository.findOne(quiz.getId())).thenReturn(quiz);
 		when(quizRepository.save(quiz)).thenReturn(quiz);
-		Quiz returned = service.update(quiz.getId(), quiz);
+		Quiz returned = service.update(quiz);
 		
 		verify(quizRepository, times(1)).save(quiz);
 		assertTrue(quiz.getName().equals(returned.getName()));
@@ -188,7 +188,7 @@ public class QuizServiceTests {
 		
 		when(quizRepository.findOne(quiz.getId())).thenReturn(null);
 		
-		service.update(quiz.getId(), quiz);
+		service.update(quiz);
 	}
 	
 	@Test(expected = UnauthorizedActionException.class)
@@ -199,7 +199,7 @@ public class QuizServiceTests {
 		doThrow(new UnauthorizedActionException())
 			.when(quizRepository).save(quiz);
 		
-		service.update(quiz.getId(), quiz);
+		service.update(quiz);
 	}
 	
 	// Delete
@@ -232,7 +232,7 @@ public class QuizServiceTests {
 	
 	@Test
 	public void testFindQuestionsByQuizWithAvailableQuizAndEmptyQuestions() throws ResourceUnavailableException {
-		quiz.setQuestions(new ArrayList<Question>());
+		when(questionService.findQuestionsByQuiz(quiz)).thenReturn(new ArrayList<>());
 		when(quizRepository.findOne(quiz.getId())).thenReturn(quiz);
 		
 		List<Question> questions = service.findQuestionsByQuiz(quiz.getId());
@@ -247,7 +247,7 @@ public class QuizServiceTests {
 		mockedQuestions.add(new Question());
 		mockedQuestions.add(new Question());
 		
-		quiz.setQuestions(mockedQuestions);
+		when(questionService.findQuestionsByQuiz(quiz)).thenReturn(mockedQuestions);
 		when(quizRepository.findOne(quiz.getId())).thenReturn(quiz);
 		
 		List<Question> questions = service.findQuestionsByQuiz(quiz.getId());

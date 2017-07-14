@@ -1,6 +1,6 @@
 (function() {
 
-	var app = angular.module("editApp", []);
+	var app = angular.module("editApp", ['dndLists']);
 
 	var editCtrl = function($scope, $http) {
 		
@@ -36,12 +36,13 @@
 			);
 		}
 		
-		$scope.saveQuiz = function(quizName, quizDescription) {
+		$scope.saveQuiz = function() {
 			var url = "/api/quizzes/";
+			
 			if ($scope.quizId != 0)
 				url = url + $scope.quizId + "/";
 
-			$http.post(url + "?name=" + quizName + "&description=" + quizDescription)
+			$http.post(url + "?name=" + $scope.quizName + "&description=" + $scope.quizDescription)
 			.then(
 					function(response) {
 						console.log(response.data);
@@ -67,6 +68,21 @@
 							$scope.questions.push(response.data);
 							$scope.newQuestion = "";
 						}
+					}, 
+					function(reason) {
+						console.log(reason.data);
+					}
+			);
+		}
+		
+		$scope.saveAll = function() {
+			var url = "/api/questions/updateAll";
+
+			$http.post(url + "?quiz_id=" + $scope.quizId,
+				JSON.stringify($scope.questions))
+			.then(
+					function(response) {
+						console.log(response.data);
 					}, 
 					function(reason) {
 						console.log(reason.data);
