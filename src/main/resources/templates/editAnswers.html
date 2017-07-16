@@ -30,6 +30,9 @@
 								<div class="col-sm-10">
 									<div class="input-group">
 										<span class="input-group-addon" id="draggable-addon">::</span>
+										<span class="input-group-addon">
+											<input type="radio" ng-model="$parent.correctAnswer" ng-value="{{answer.id}}" name="isCorrect"></input>
+										</span>
 										<input th:placeholder="#{label.editanswers.text.placeholder}" class="form-control" aria-describedby="draggable-addon" ng-model="answer.text"/>
 									</div>
 								</div>
@@ -71,7 +74,7 @@
 			        </div>
 			        
 			        <div>
-						<button th:text="#{label.editquiz.submit.saveAll}" class="btn btn-lg btn-primary btn-block" type="submit"  ng-click="saveAll()">Update</button>
+						<button th:text="#{label.editquiz.submit.saveAll}" class="btn btn-lg btn-primary btn-block" type="submit"  ng-click="saveAll(correctAnswer)">Update</button>
 			        </div>
 			        
 				</form>  

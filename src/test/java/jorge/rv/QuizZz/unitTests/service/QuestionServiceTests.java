@@ -3,6 +3,7 @@ package jorge.rv.QuizZz.unitTests.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -33,6 +34,7 @@ import jorge.rv.quizzz.service.QuestionServiceImpl;
 public class QuestionServiceTests {
 
 	private static final int DEFAULT_NUMBER_OF_ANSWERS = 10;
+	private static final int CORRECT_ANSWER = DEFAULT_NUMBER_OF_ANSWERS - 1;
 
 	QuestionService service;
 	
@@ -205,7 +207,7 @@ public class QuestionServiceTests {
 		assertTrue(isCorrect);
 	}
 	
-	@Test()
+	@Test
 	public void testCheckAnswer_answerFound_shouldReturnIncorrect() {
 		List<Answer> listAnswers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
 		question.setAnswers(listAnswers);
@@ -216,6 +218,71 @@ public class QuestionServiceTests {
 		
 		verify(answerService, times(1)).checkAnswer(any(Answer.class));
 		assertFalse(isCorrect);
+	}
+	
+	@Test(expected = ResourceUnavailableException.class)
+	public void testSetCorrectAnswer_questionDoesntExist_shouldThrowException() {
+		when(questionRepository.findOne(question.getId())).thenThrow(new ResourceUnavailableException());
+		
+		service.setCorrectAnswer(question.getId(), 3l);
+	}
+	
+	@Test
+	public void testSetCorrectAnswer_onlyTheCorrectShouldBeSetAsCorrect() {
+		List<Answer> answers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
+		
+		// Set half as correct and half as incorrect
+		for (int i=0; i<answers.size(); i++) {
+			if (i < DEFAULT_NUMBER_OF_ANSWERS/2) {
+				answers.get(i).setIscorrect(true);
+			} else {
+				answers.get(i).setIscorrect(false);
+			}
+		}
+		
+		question.setAnswers(answers);
+		when(questionRepository.findOne(question.getId())).thenReturn(question);
+		
+		service.setCorrectAnswer(question.getId(), (long) CORRECT_ANSWER);
+		
+		// Check that the answer list is now correct and that the repository has been updated
+		// at least with the answers that have changed.
+		for (Answer answer : answers) {
+			if (answer.getId() == CORRECT_ANSWER) {
+				assertTrue(answer.getIscorrect());
+			} else {
+				assertFalse(answer.getIscorrect());
+			}
+		}
+		
+		for (int i=0; i<DEFAULT_NUMBER_OF_ANSWERS/2; i++) {
+			verify(answerService, times(1)).save(answers.get(i));
+		}
+		
+		verify(answerService, times(1)).save(answers.get(CORRECT_ANSWER));
+	}
+	
+	@Test
+	public void testGetCorrectAnswer_noCorrectAnswerSet_shouldReturnNull() {
+		List<Answer> answers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
+		question.setAnswers(answers);
+		when(questionRepository.findOne(question.getId())).thenReturn(question);
+		
+		Answer correctAnswer = service.getCorrectAnswer(question.getId());
+		
+		assertNull(correctAnswer);
+	}
+	
+	@Test
+	public void testGetCorrectAnswer_correctAnswerSet_shouldReturnIt() {
+		List<Answer> answers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
+		answers.get(CORRECT_ANSWER).setIscorrect(true);
+		question.setAnswers(answers);
+		when(questionRepository.findOne(question.getId())).thenReturn(question);
+		
+		Answer correctAnswer = service.getCorrectAnswer(question.getId());
+		
+		assertEquals(answers.get(CORRECT_ANSWER), correctAnswer);
 	}
 	
 	private List<Answer> generateAnswers(int numberOfAnswers) {

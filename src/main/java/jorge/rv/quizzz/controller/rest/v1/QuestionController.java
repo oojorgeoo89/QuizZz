@@ -99,4 +99,20 @@ public class QuestionController {
 		return questionService.findAnswersByQuestion(question_id);
 	}
 
+	@RequestMapping(value = "/{question_id}/correctAnswer", method = RequestMethod.GET)
+	@PreAuthorize("isAuthenticated()")
+	@ResponseStatus(HttpStatus.OK)
+	public Answer getCorrectAnswer(@PathVariable Long question_id) {
+		
+		return questionService.getCorrectAnswer(question_id);
+	}
+	
+	@RequestMapping(value = "/{question_id}/correctAnswer", method = RequestMethod.POST)
+	@PreAuthorize("isAuthenticated()")
+	@ResponseStatus(HttpStatus.OK)
+	public void setCorrectAnswer(@PathVariable Long question_id, @RequestParam Long answer_id) {
+		
+		questionService.setCorrectAnswer(question_id, answer_id);
+	}
+	
 }

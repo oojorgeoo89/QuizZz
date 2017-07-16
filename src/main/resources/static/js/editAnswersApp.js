@@ -3,7 +3,7 @@
 	var app = angular.module("editAnswersApp", ['dndLists']);
 
 	var editAnswersCtrl = function($scope, $http) {
-
+		
 		$scope.refreshAnswers = function() {
 			if ($scope.questionId == 0)
 				return;
@@ -13,11 +13,30 @@
 					function(response) {
 						$scope.answers = response.data;
 						$scope.newAnswer = "";
+						$scope.refreshCorrectAnswer();
 					}, 
 					function(reason) {
 						console.log(reason.data);
 					}
 			);
+		}
+		
+		$scope.refreshCorrectAnswer = function() {
+			var url = "/api/questions/" + $scope.questionId + "/correctAnswer";
+			
+			$http.get(url + "?answer_id=" + $scope.correctAnswer)
+				.then(
+						function(response) {
+							if (response.data != "") {
+								$scope.correctAnswer = response.data.id;
+							} else if ($scope.answers.length > 0) {
+								$scope.correctAnswer = $scope.answers[0].id;
+							}
+						}, 
+						function(reason) {
+							console.log(reason.data);
+						}
+				);
 		}
 				
 		$scope.saveAnswer = function(answerId, answerText) {
@@ -34,6 +53,10 @@
 						if (answerId == 0) {
 							$scope.answers.push(response.data);
 							$scope.newAnswer = "";
+							
+							if ($scope.answers.length == 1) {
+								$scope.correctAnswer = $scope.answers[0].id;
+							}
 						}
 					}, 
 					function(reason) {
@@ -42,19 +65,44 @@
 			);
 		}
 		
-		$scope.saveAll = function() {
+		$scope.saveAll = function(correctAnswer) {
+			
+			if (correctAnswer === undefined) {
+				alert("Please, select a correct answer.");
+				return;
+			}
+			
+			$scope.saveAllAnswers();
+			$scope.setCorrectAnswer(correctAnswer);
+		}
+		
+		$scope.saveAllAnswers = function() {
 			var url = "/api/answers/updateAll";
-
+			
 			$http.post(url + "?question_id=" + $scope.questionId,
-				JSON.stringify($scope.answers))
-			.then(
-					function(response) {
-						console.log(response.data);
-					}, 
-					function(reason) {
-						console.log(reason.data);
-					}
-			);
+					JSON.stringify($scope.answers))
+				.then(
+						function(response) {
+							console.log(response.data);
+						}, 
+						function(reason) {
+							console.log(reason.data);
+						}
+				);
+		}
+		
+		$scope.setCorrectAnswer = function(correctAnswer) {
+			var url = "/api/questions/" + $scope.questionId + "/correctAnswer";
+			
+			$http.post(url + "?answer_id=" + correctAnswer)
+				.then(
+						function(response) {
+							console.log(response.data);
+						}, 
+						function(reason) {
+							console.log(reason.data);
+						}
+				);
 		}
 		
 		$scope.deleteAnswer = function(answerId) {

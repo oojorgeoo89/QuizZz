@@ -100,4 +100,35 @@ public class QuestionServiceImpl implements QuestionService {
 		return questionRepository.findByQuizOrderByOrderAsc(quiz);
 	}
 
+	@Override
+	public void setCorrectAnswer(Long questionId, Long answerId) {
+		Question question = find(questionId);
+		for (Answer answer : question.getAnswers()) {
+			if (answer.getId().equals(answerId)) {
+				if (answer.getIscorrect() == false) {
+					answer.setIscorrect(true);
+					answerService.save(answer);
+				}
+			} else {
+				if (answer.getIscorrect() == true) {
+					answer.setIscorrect(false);
+					answerService.save(answer);
+				}
+			}
+		}
+	}
+
+	@Override
+	public Answer getCorrectAnswer(Long id) {
+		Question question = find(id);
+		
+		for (Answer answer : question.getAnswers()) {
+			if (answer.getIscorrect()) {
+				return answer;
+			}
+		}
+		
+		return null;
+	}
+
 }

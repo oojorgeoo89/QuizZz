@@ -17,4 +17,6 @@ public interface QuestionService {
 	List<Answer> findAnswersByQuestion(Long id) throws ResourceUnavailableException;
 	Boolean checkAnswer(Question question, Long selectedAnswer);
 	List<Question> findQuestionsByQuiz(Quiz quiz);
+	void setCorrectAnswer(Long questionId, Long answerId);
+	Answer getCorrectAnswer(Long id);
 }
