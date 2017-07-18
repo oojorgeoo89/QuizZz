@@ -23,28 +23,28 @@ import jorge.rv.quizzz.service.usermanagement.RegistrationService;
 @Controller
 @RequestMapping("/user")
 public class RegistrationController {
-	
+
 	@Autowired
 	private RegistrationService registrationService;
-	
+
 	@Autowired
 	private UserService userService;
-	
+
 	@Autowired
 	private MessageSource messageSource;
-	
+
 	@RequestMapping(value = "/registration", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	public String showRegistrationForm(@ModelAttribute User user) {
 		return "registration";
 	}
-	
+
 	@RequestMapping(value = "/registration", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
 	public ModelAndView signUp(@ModelAttribute @Valid User user, BindingResult result) {
 		User newUser;
 		ModelAndView mav = new ModelAndView();
-		
+
 		try {
 			RestVerifier.verifyModelResult(result);
 			newUser = registrationService.startRegistration(user);
@@ -56,22 +56,22 @@ public class RegistrationController {
 			mav.setViewName("registration");
 			return mav;
 		}
-		
+
 		return registrationStepView(newUser, mav);
 	}
-	
+
 	@RequestMapping(value = "/{user_id}/continueRegistration", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	public ModelAndView nextRegistrationStep(@PathVariable Long user_id, String token) {
 		User user = userService.find(user_id);
 		registrationService.continueRegistration(user, token);
-		
+
 		ModelAndView mav = new ModelAndView();
 		return registrationStepView(user, mav);
 	}
-	
+
 	private ModelAndView registrationStepView(User user, ModelAndView mav) {
-		
+
 		if (!registrationService.isRegistrationCompleted(user)) {
 			mav.addObject("header", messageSource.getMessage("label.registration.step1.header", null, null));
 			mav.addObject("subheader", messageSource.getMessage("label.registration.step1.subheader", null, null));
@@ -81,7 +81,7 @@ public class RegistrationController {
 			mav.addObject("subheader", messageSource.getMessage("label.registration.step2.subheader", null, null));
 			mav.setViewName("simplemessage");
 		}
-		
+
 		return mav;
 	}
 }

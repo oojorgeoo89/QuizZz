@@ -10,7 +10,7 @@ import jorge.rv.quizzz.service.usermanagement.utils.TokenGenerator;
 
 @Service
 public class TokenServiceRegistration extends TokenServiceAbs<RegistrationToken> {
-	
+
 	@Value("${quizzz.tokens.registration_mail.timeout}")
 	private Integer expirationTimeInMinutes = 86400;
 

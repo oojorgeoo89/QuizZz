@@ -14,8 +14,8 @@ public class TokenTasks {
 
 	@Autowired
 	List<TokenService<?>> tokenServices;
-	
-	@Scheduled(fixedDelay=2000)
+
+	@Scheduled(fixedDelay = 2000)
 	public void cleanUpExpiredTokens() {
 		for (TokenService<?> tokenService : tokenServices) {
 			tokenService.invalidateExpiredTokensPreviousTo(new Date());

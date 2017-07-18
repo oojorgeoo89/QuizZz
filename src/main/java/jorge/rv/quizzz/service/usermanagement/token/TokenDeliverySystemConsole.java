@@ -14,9 +14,9 @@ public class TokenDeliverySystemConsole implements TokenDeliverySystem {
 
 	private static final Logger logger = LoggerFactory.getLogger(AccessControlServiceUserOwned.class);
 	private static final String CONFIG_URI = "quizzz.tokens.%s.url";
-	
+
 	private Environment env;
-	
+
 	@Autowired
 	public TokenDeliverySystemConsole(Environment env) {
 		this.env = env;

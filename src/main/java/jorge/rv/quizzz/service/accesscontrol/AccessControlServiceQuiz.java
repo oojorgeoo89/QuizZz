@@ -8,7 +8,7 @@ import jorge.rv.quizzz.model.Quiz;
 
 @Service("AccessControlQuiz")
 public class AccessControlServiceQuiz extends AccessControlServiceUserOwned<Quiz> {
-	
+
 	/*
 	 * As long as the user is authenticated, it can create a Quiz.
 	 */
@@ -18,5 +18,5 @@ public class AccessControlServiceQuiz extends AccessControlServiceUserOwned<Quiz
 			throw new UnauthorizedActionException();
 		}
 	}
-	
+
 }

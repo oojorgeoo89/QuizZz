@@ -31,67 +31,66 @@ import jorge.rv.quizzz.service.QuizService;
 @RestController
 @RequestMapping(QuizController.ROOT_MAPPING)
 public class QuizController {
-	
+
 	public static final String ROOT_MAPPING = "/api/quizzes";
 
 	@Autowired
 	private QuizService quizService;
-	
+
 	@Autowired
 	private QuestionService questionService;
-	
+
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
 	public Page<Quiz> findAll(Pageable pageable,
-										@RequestParam(required = false, defaultValue = "false") Boolean published) {
-		
+			@RequestParam(required = false, defaultValue = "false") Boolean published) {
+
 		if (published) {
 			return quizService.findAllPublished(pageable);
 		} else {
 			return quizService.findAll(pageable);
 		}
 	}
-	
+
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
-	public Page<Quiz> searchAll(Pageable pageable,
-										@RequestParam(required = true) String filter,
-										@RequestParam(required = false, defaultValue = "false") Boolean onlyValid) {
-		
+	public Page<Quiz> searchAll(Pageable pageable, @RequestParam(required = true) String filter,
+			@RequestParam(required = false, defaultValue = "false") Boolean onlyValid) {
+
 		return quizService.search(filter, pageable);
 	}
-	
+
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Quiz save(@AuthenticationPrincipal AuthenticatedUser user, @Valid Quiz quiz, BindingResult result) {
-		
+
 		RestVerifier.verifyModelResult(result);
-		
+
 		return quizService.save(quiz, user.getUser());
 	}
-	
+
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
 	public Quiz find(@PathVariable Long quiz_id) {
-		
+
 		return quizService.find(quiz_id);
 	}
-	
+
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
 	public Quiz update(@PathVariable Long quiz_id, @Valid Quiz quiz, BindingResult result) {
-		
+
 		RestVerifier.verifyModelResult(result);
-		
+
 		quiz.setId(quiz_id);
 		return quizService.update(quiz);
 	}
-	
+
 	@RequestMapping(value = "/{quiz_id}", method = RequestMethod.DELETE)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
@@ -99,23 +98,23 @@ public class QuizController {
 		Quiz quiz = quizService.find(quiz_id);
 		quizService.delete(quiz);
 	}
-	
+
 	@RequestMapping(value = "/{quiz_id}/questions", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
-	public List<Question> findQuestions(@PathVariable Long quiz_id, 
+	public List<Question> findQuestions(@PathVariable Long quiz_id,
 			@RequestParam(required = false, defaultValue = "false") Boolean onlyValid) {
-		
+
 		Quiz quiz = quizService.find(quiz_id);
-		
+
 		if (onlyValid) {
 			return questionService.findValidQuestionsByQuiz(quiz);
 		} else {
 			return questionService.findQuestionsByQuiz(quiz);
 		}
-		
+
 	}
-	
+
 	@RequestMapping(value = "/{quiz_id}/publish", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
@@ -123,7 +122,7 @@ public class QuizController {
 		Quiz quiz = quizService.find(quiz_id);
 		quizService.publishQuiz(quiz);
 	}
-	
+
 	@RequestMapping(value = "/{quiz_id}/submitAnswers", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
@@ -131,5 +130,5 @@ public class QuizController {
 		Quiz quiz = quizService.find(quiz_id);
 		return quizService.checkAnswers(quiz, answersBundle);
 	}
-	
+
 }

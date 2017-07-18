@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import jorge.rv.quizzz.model.Role;
 
 @Repository("roleRepository")
-public interface RoleRepository extends JpaRepository<Role, Integer>{
+public interface RoleRepository extends JpaRepository<Role, Integer> {
 	Role findByRole(String role);
 }

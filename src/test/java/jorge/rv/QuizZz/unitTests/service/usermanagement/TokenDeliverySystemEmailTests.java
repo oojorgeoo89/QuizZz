@@ -30,18 +30,18 @@ public class TokenDeliverySystemEmailTests {
 	private static final String TOKEN = "token";
 
 	TokenDeliverySystem tokenDeliverySystem;
-	
+
 	@Captor
-    private ArgumentCaptor<SimpleMailMessage> captor;
-	
+	private ArgumentCaptor<SimpleMailMessage> captor;
+
 	// Mocks
 	MessageSource messageSource;
 	TokenModel token;
 	JavaMailSender mailServer;
-	
+
 	// Models
 	User user = new User();
-	
+
 	@Before
 	public void before() {
 		messageSource = mock(MessageSource.class);
@@ -49,54 +49,54 @@ public class TokenDeliverySystemEmailTests {
 		mailServer = mock(JavaMailSender.class);
 
 		tokenDeliverySystem = new TokenDeliverySystemEmail(messageSource, mailServer);
-		
+
 		captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
-				
+
 		user.setId(1l);
 	}
-	
+
 	@Test
 	public void sendEmailRegistrationToken() {
 		String registrationConfigUri = String.format(CONFIG_URI, TokenType.REGISTRATION_MAIL.toString().toLowerCase());
 		doReturn(TOKEN).when(token).getToken();
-		
+
 		doReturn("dummyUrl/%1$d/%2$s").when(messageSource).getMessage(registrationConfigUri + ".url", null, null);
 		doReturn("Subject").when(messageSource).getMessage(registrationConfigUri + ".subject", null, null);
 		doReturn("Body %1$s %2$s").when(messageSource).getMessage(registrationConfigUri + ".body", null, null);
-		
+
 		tokenDeliverySystem.sendTokenToUser(token, user, TokenType.REGISTRATION_MAIL);
-		
+
 		verify(messageSource, times(1)).getMessage(registrationConfigUri + ".url", null, null);
 		verify(mailServer, times(1)).send(captor.capture());
 		assertThat(captor.getValue().getText(), containsString("dummyUrl/1/" + TOKEN));
 		assertThat(captor.getValue().getText(), containsString(user.getId().toString()));
 		assertThat(captor.getValue().getSubject(), containsString("Subject"));
 	}
-	
+
 	@Test
 	public void failToSendEmailRegistrationToken_shouldNotThrowException() {
 		String registrationConfigUri = String.format(CONFIG_URI, TokenType.REGISTRATION_MAIL.toString().toLowerCase());
 		doReturn(TOKEN).when(token).getToken();
 		doThrow(new MailSendException("")).when(mailServer).send((SimpleMailMessage) any());
-		
+
 		doReturn("dummyUrl/%1$d/%2$s").when(messageSource).getMessage(registrationConfigUri + ".url", null, null);
 		doReturn("Subject").when(messageSource).getMessage(registrationConfigUri + ".subject", null, null);
 		doReturn("Body %1$s %2$s").when(messageSource).getMessage(registrationConfigUri + ".body", null, null);
-		
+
 		tokenDeliverySystem.sendTokenToUser(token, user, TokenType.REGISTRATION_MAIL);
 	}
-	
+
 	@Test
 	public void sendForgotPasswordToken() {
 		String forgotPasswordConfigUri = String.format(CONFIG_URI, TokenType.FORGOT_PASSWORD.toString().toLowerCase());
 		doReturn(TOKEN).when(token).getToken();
-		
+
 		doReturn("dummyUrl/%1$d/%2$s").when(messageSource).getMessage(forgotPasswordConfigUri + ".url", null, null);
 		doReturn("Subject").when(messageSource).getMessage(forgotPasswordConfigUri + ".subject", null, null);
 		doReturn("Body %1$s %2$s").when(messageSource).getMessage(forgotPasswordConfigUri + ".body", null, null);
-		
+
 		tokenDeliverySystem.sendTokenToUser(token, user, TokenType.FORGOT_PASSWORD);
-		
+
 		verify(messageSource, times(1)).getMessage(forgotPasswordConfigUri + ".url", null, null);
 		verify(mailServer, times(1)).send(captor.capture());
 		assertThat(captor.getValue().getText(), containsString("dummyUrl/1/" + TOKEN));

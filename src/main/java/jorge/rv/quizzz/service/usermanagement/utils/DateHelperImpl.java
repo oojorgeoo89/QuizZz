@@ -15,15 +15,15 @@ public class DateHelperImpl implements DateHelper {
 
 	@Override
 	public Date getExpirationDate(Date from, int offset) {
-		
+
 		if (offset <= 0) {
 			return from;
 		}
-		
+
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(from);
 		calendar.add(Calendar.MINUTE, offset);
-		
+
 		return calendar.getTime();
 	}
 

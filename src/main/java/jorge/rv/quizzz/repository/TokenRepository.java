@@ -11,7 +11,7 @@ import jorge.rv.quizzz.model.TokenModel;
 @NoRepositoryBean
 public interface TokenRepository<T extends TokenModel> extends CrudRepository<T, Long> {
 	T findByToken(String token);
-	
+
 	@Modifying
 	void deletePreviousTo(Date date);
 }

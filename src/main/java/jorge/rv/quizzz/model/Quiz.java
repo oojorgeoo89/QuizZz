@@ -34,10 +34,10 @@ public class Quiz extends BaseModel implements UserOwned {
 	@OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JsonIgnore
 	private List<Question> questions;
-	
-	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)
+
+	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
 	private Calendar createdDate;
-	
+
 	private Boolean isPublished = false;
 
 	public Calendar getCreatedDate() {
@@ -51,7 +51,7 @@ public class Quiz extends BaseModel implements UserOwned {
 	public void setQuestions(List<Question> exercises) {
 		this.questions = exercises;
 	}
-	
+
 	public User getCreatedBy() {
 		return createdBy;
 	}

@@ -20,70 +20,49 @@ import org.springframework.security.web.authentication.rememberme.PersistentToke
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-	
+
 	@Autowired
 	DataSource dataSource;
-	
+
 	@Bean
 	public PersistentTokenRepository persistentTokenRepository() {
 		JdbcTokenRepositoryImpl db = new JdbcTokenRepositoryImpl();
 		db.setDataSource(dataSource);
 		return db;
 	}
-	
+
 	@Autowired
-	public void configureGlobal(AuthenticationManagerBuilder auth, UserDetailsService userDetailsService, PasswordEncoder encoder)
-			throws Exception {
+	public void configureGlobal(AuthenticationManagerBuilder auth, UserDetailsService userDetailsService,
+			PasswordEncoder encoder) throws Exception {
 		auth.userDetailsService(userDetailsService).passwordEncoder(encoder);
 	}
-	
+
 	@Configuration
 	@Order(1)
 	public static class RestWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
-		
+
 		@Autowired
 		PersistentTokenRepository persistentTokenRepository;
-		
+
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
-			http
-				.antMatcher("/api/**")   
-					.authorizeRequests()
-					.anyRequest()
-					.permitAll()
-				.and()
-					.httpBasic()
-				.and()
-					.csrf()
+			http.antMatcher("/api/**").authorizeRequests().anyRequest().permitAll().and().httpBasic().and().csrf()
 					.disable();
 		}
 	}
-	
+
 	@Configuration
 	public static class WebWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
 		@Autowired
 		PersistentTokenRepository persistentTokenRepository;
-		
+
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
-			http
-				.formLogin()
-					.loginPage("/user/login")
-					.defaultSuccessUrl("/", true)
-				.and()
-					.rememberMe()
-					.tokenRepository(persistentTokenRepository)
-				.and()
-					.csrf()
-					.disable()
-					.logout()
-					.logoutSuccessUrl("/")
-					.deleteCookies("JSESSIONID")
-					.invalidateHttpSession(true) ;
+			http.formLogin().loginPage("/user/login").defaultSuccessUrl("/", true).and().rememberMe()
+					.tokenRepository(persistentTokenRepository).and().csrf().disable().logout().logoutSuccessUrl("/")
+					.deleteCookies("JSESSIONID").invalidateHttpSession(true);
 		}
 	}
-	
-	
-	
+
 }

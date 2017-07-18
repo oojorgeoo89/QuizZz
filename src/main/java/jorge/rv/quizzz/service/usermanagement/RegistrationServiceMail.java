@@ -17,10 +17,9 @@ public class RegistrationServiceMail implements RegistrationService {
 	private UserService userService;
 	private TokenServiceRegistration tokenService;
 	private TokenDeliverySystem tokenDeliveryService;
-	
+
 	@Autowired
-	public RegistrationServiceMail(UserService userService, 
-			TokenServiceRegistration tokenService, 
+	public RegistrationServiceMail(UserService userService, TokenServiceRegistration tokenService,
 			TokenDeliverySystem tokenDeliveryService) {
 		this.userService = userService;
 		this.tokenService = tokenService;
@@ -30,7 +29,7 @@ public class RegistrationServiceMail implements RegistrationService {
 	@Override
 	public User startRegistration(User user) {
 		User newUser;
-		
+
 		try {
 			newUser = userService.saveUser(user);
 		} catch (UserAlreadyExistsException e) {
@@ -39,20 +38,20 @@ public class RegistrationServiceMail implements RegistrationService {
 				throw e;
 			}
 		}
-		
+
 		RegistrationToken mailToken = tokenService.generateTokenForUser(newUser);
 		tokenDeliveryService.sendTokenToUser(mailToken, newUser, TokenType.REGISTRATION_MAIL);
-		
+
 		return newUser;
 	}
 
 	@Override
 	public User continueRegistration(User user, String token) {
 		tokenService.validateTokenForUser(user, token);
-		
+
 		userService.setRegistrationCompleted(user);
 		tokenService.invalidateToken(token);
-		
+
 		return user;
 	}
 

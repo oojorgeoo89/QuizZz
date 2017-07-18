@@ -7,7 +7,7 @@ public class UnauthorizedActionException extends QuizZzException {
 	public UnauthorizedActionException() {
 		super();
 	}
-	
+
 	public UnauthorizedActionException(String message) {
 		super(message);
 	}

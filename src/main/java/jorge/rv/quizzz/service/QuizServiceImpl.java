@@ -27,15 +27,15 @@ public class QuizServiceImpl implements QuizService {
 
 	private static final Logger logger = LoggerFactory.getLogger(QuizServiceImpl.class);
 	private QuizRepository quizRepository;
-	
+
 	private QuestionService questionService;
-	
+
 	@Autowired
 	public QuizServiceImpl(QuizRepository quizRepository, QuestionService questionService) {
 		this.quizRepository = quizRepository;
 		this.questionService = questionService;
 	}
-	
+
 	@Override
 	public Quiz save(Quiz quiz, User user) {
 		quiz.setCreatedBy(user);
@@ -46,7 +46,7 @@ public class QuizServiceImpl implements QuizService {
 	public Page<Quiz> findAll(Pageable pageable) {
 		return quizRepository.findAll(pageable);
 	}
-	
+
 	@Override
 	public Page<Quiz> findAllPublished(Pageable pageable) {
 		return quizRepository.findByIsPublishedTrue(pageable);
@@ -55,19 +55,19 @@ public class QuizServiceImpl implements QuizService {
 	@Override
 	public Quiz find(Long id) throws ResourceUnavailableException {
 		Quiz quiz = quizRepository.findOne(id);
-		
+
 		if (quiz == null) {
 			logger.error("Quiz " + id + " not found");
 			throw new ResourceUnavailableException("Quiz " + id + " not found");
 		}
-		
+
 		return quiz;
 	}
 
 	@Override
 	public Quiz update(Quiz newQuiz) throws UnauthorizedActionException, ResourceUnavailableException {
 		Quiz currentQuiz = find(newQuiz.getId());
-		
+
 		mergeQuizzes(currentQuiz, newQuiz);
 		return quizRepository.save(currentQuiz);
 	}
@@ -95,14 +95,14 @@ public class QuizServiceImpl implements QuizService {
 	@Override
 	public Result checkAnswers(Quiz quiz, List<Response> answersBundle) {
 		Result results = new Result();
-		
+
 		for (Question question : quiz.getQuestions()) {
 			boolean isFound = false;
-			
+
 			if (!question.getIsValid()) {
 				continue;
 			}
-			
+
 			for (Response bundle : answersBundle) {
 				if (bundle.getQuestion().equals(question.getId())) {
 					isFound = true;
@@ -110,19 +110,19 @@ public class QuizServiceImpl implements QuizService {
 					break;
 				}
 			}
-			
+
 			if (!isFound) {
 				throw new InvalidParametersException("No answer found for question: " + question.getText());
 			}
 		}
-		
+
 		return results;
 	}
 
 	@Override
 	public void publishQuiz(Quiz quiz) {
 		int count = questionService.countValidQuestionsInQuiz(quiz);
-		
+
 		if (count > 0) {
 			quiz.setIsPublished(true);
 			quizRepository.save(quiz);
@@ -130,5 +130,5 @@ public class QuizServiceImpl implements QuizService {
 			throw new ActionRefusedException("The quiz doesn't have any valid questions");
 		}
 	}
-	
+
 }

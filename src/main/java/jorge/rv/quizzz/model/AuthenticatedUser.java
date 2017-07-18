@@ -11,13 +11,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class AuthenticatedUser implements UserDetails {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private User user;
-	
+
 	public AuthenticatedUser(User user) {
 		this.user = user;
 	}
-	
+
 	public User getUser() {
 		return user;
 	}
@@ -25,14 +25,14 @@ public class AuthenticatedUser implements UserDetails {
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-        
+
 		for (final Role role : user.getRoles()) {
-            authorities.add(new SimpleGrantedAuthority(role.getRole()));
-        }
-		
-        return authorities;
+			authorities.add(new SimpleGrantedAuthority(role.getRole()));
+		}
+
+		return authorities;
 	}
-	
+
 	public Long getId() {
 		return user.getId();
 	}
@@ -66,5 +66,5 @@ public class AuthenticatedUser implements UserDetails {
 	public boolean isEnabled() {
 		return user.getEnabled();
 	}
-	
+
 }

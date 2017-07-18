@@ -11,7 +11,10 @@ import jorge.rv.quizzz.model.Quiz;
 @Repository("QuestionRepository")
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 	int countByQuiz(Quiz quiz);
+
 	int countByQuizAndIsValidTrue(Quiz quiz);
+
 	List<Question> findByQuizOrderByOrderAsc(Quiz quiz);
+
 	List<Question> findByQuizAndIsValidTrueOrderByOrderAsc(Quiz quiz);
 }

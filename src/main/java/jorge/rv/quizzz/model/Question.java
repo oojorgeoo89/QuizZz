@@ -20,28 +20,28 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Table(name = "question")
 public class Question extends BaseModel implements UserOwned {
 
-	@Size(min=2, max=150, message = "The question should be between 2 and 150 characters")
+	@Size(min = 2, max = 150, message = "The question should be between 2 and 150 characters")
 	@NotNull(message = "Question text not provided")
 	private String text;
-	
+
 	@ManyToOne
 	@JsonIgnore
 	private Quiz quiz;
-	
+
 	@Column(name = "q_order")
 	private Integer order;
-	
+
 	@JsonIgnore
-	@OneToMany(mappedBy="question", cascade=CascadeType.ALL, fetch=FetchType.LAZY)
+	@OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Answer> answers;
-	
+
 	@JsonIgnore
 	@OneToOne
 	private Answer correctAnswer;
-	
-	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)
+
+	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
 	private Calendar createdDate;
-	
+
 	@JsonIgnore
 	private Boolean isValid = false;
 

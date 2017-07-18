@@ -12,15 +12,13 @@ import jorge.rv.quizzz.service.usermanagement.token.TokenServiceForgotPassword;
 
 @Service
 public class UserManagementServiceImpl implements UserManagementService {
-	
+
 	private UserService userService;
 	private TokenServiceForgotPassword forgotPasswordService;
 	private TokenDeliverySystem tokenDeliveryService;
-	
 
 	@Autowired
-	public UserManagementServiceImpl(UserService userService,
-			TokenServiceForgotPassword forgotPasswordService,
+	public UserManagementServiceImpl(UserService userService, TokenServiceForgotPassword forgotPasswordService,
 			TokenDeliverySystem tokenDeliveryService) {
 		this.forgotPasswordService = forgotPasswordService;
 		this.tokenDeliveryService = tokenDeliveryService;
@@ -30,7 +28,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 	@Override
 	public void resendPassword(User user) {
 		ForgotPasswordToken token = forgotPasswordService.generateTokenForUser(user);
-		tokenDeliveryService.sendTokenToUser(token, user, TokenType.FORGOT_PASSWORD);	
+		tokenDeliveryService.sendTokenToUser(token, user, TokenType.FORGOT_PASSWORD);
 	}
 
 	@Override

@@ -15,7 +15,8 @@ public class TokenServiceForgotPassword extends TokenServiceAbs<ForgotPasswordTo
 	private Integer expirationTimeInMinutes = 86400;
 
 	@Autowired
-	public TokenServiceForgotPassword(ForgotPasswordTokenRepository forgotPasswordTokenRepository, TokenGenerator tokenGenerator) {
+	public TokenServiceForgotPassword(ForgotPasswordTokenRepository forgotPasswordTokenRepository,
+			TokenGenerator tokenGenerator) {
 		super(tokenGenerator, forgotPasswordTokenRepository);
 	}
 
@@ -28,7 +29,7 @@ public class TokenServiceForgotPassword extends TokenServiceAbs<ForgotPasswordTo
 	protected int getExpirationTimeInMinutes() {
 		return expirationTimeInMinutes;
 	}
-	
+
 	public void setExpirationTimeInMinutes(Integer expirationTimeInMinutes) {
 		this.expirationTimeInMinutes = expirationTimeInMinutes;
 	}

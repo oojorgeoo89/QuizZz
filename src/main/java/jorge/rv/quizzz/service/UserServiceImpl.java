@@ -25,19 +25,20 @@ import jorge.rv.quizzz.repository.UserRepository;
 @Service
 @Transactional
 public class UserServiceImpl implements UserService {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 	private UserRepository userRepository;
 	private RoleRepository roleRepository;
-	private PasswordEncoder passwordEncoder; 
-    
+	private PasswordEncoder passwordEncoder;
+
 	@Autowired
-	public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+	public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
+			PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.roleRepository = roleRepository;
 	}
-	
+
 	@Override
 	public User saveUser(User user) throws UserAlreadyExistsException {
 		if (userRepository.findByEmail(user.getEmail()) != null) {
@@ -46,21 +47,21 @@ public class UserServiceImpl implements UserService {
 		}
 
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setEnabled(false);
-        Role userRole = roleRepository.findByRole(Roles.USER.toString());
-        user.setRoles(new HashSet<Role>(Arrays.asList(userRole)));
-        
+		user.setEnabled(false);
+		Role userRole = roleRepository.findByRole(Roles.USER.toString());
+		user.setRoles(new HashSet<Role>(Arrays.asList(userRole)));
+
 		return userRepository.save(user);
 	}
 
 	@Override
 	/*
-	 * Look up by both Email and Username. Throw exception if it wasn't in either.
-	 * TODO: Join Username and Email into one JPQL
+	 * Look up by both Email and Username. Throw exception if it wasn't in
+	 * either. TODO: Join Username and Email into one JPQL
 	 */
 	public AuthenticatedUser loadUserByUsername(String username) throws UsernameNotFoundException {
 		User user;
-		
+
 		try {
 			user = findByUsername(username);
 		} catch (ResourceUnavailableException e) {
@@ -70,38 +71,38 @@ public class UserServiceImpl implements UserService {
 				throw new UsernameNotFoundException(username + " couldn't be resolved to any user");
 			}
 		}
-		
-        return new AuthenticatedUser(user);
+
+		return new AuthenticatedUser(user);
 	}
-	
+
 	@Override
 	public User findByUsername(String username) throws ResourceUnavailableException {
 		User user = userRepository.findByUsername(username);
-		
+
 		if (user == null) {
 			logger.error("The user " + username + " doesn't exist");
 			throw new ResourceUnavailableException("The user " + username + " doesn't exist");
 		}
-		
+
 		return user;
 	}
 
 	@Override
 	public User find(Long id) throws ResourceUnavailableException {
 		User user = userRepository.findOne(id);
-		
+
 		if (user == null) {
 			logger.error("The user " + id + " can't be found");
 			throw new ResourceUnavailableException("User " + id + " not found.");
 		}
-		
+
 		return user;
 	}
 
 	@Override
 	public void delete(Long user_id) throws UnauthorizedActionException, ResourceUnavailableException {
 		User userToDelete = find(user_id);
-		
+
 		userRepository.delete(userToDelete);
 	}
 
@@ -119,12 +120,12 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User findByEmail(String email) throws ResourceUnavailableException {
 		User user = userRepository.findByEmail(email);
-		
+
 		if (user == null) {
 			logger.error("The mail " + email + " can't be found");
 			throw new ResourceUnavailableException("The mail " + email + " can't be found");
 		}
-		
+
 		return user;
 	}
 

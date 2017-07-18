@@ -4,23 +4,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
 
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.AuthenticatedUser;
 import jorge.rv.quizzz.model.BaseModel;
 import jorge.rv.quizzz.model.UserOwned;
 
-@Service("AccessControlService")
-public abstract class AccessControlServiceUserOwned<T extends BaseModel & UserOwned> implements AccessControlService<T> {
-	
+public abstract class AccessControlServiceUserOwned<T extends BaseModel & UserOwned>
+		implements AccessControlService<T> {
+
 	private static final Logger logger = LoggerFactory.getLogger(AccessControlServiceUserOwned.class);
 
 	@Override
 	public void canUserCreateObject(AuthenticatedUser user, T object) throws UnauthorizedActionException {
 		if (!canUserModifyObject(user, object)) {
 			logger.error("The user " + user.getId() + " can't create this object");
-			throw new UnauthorizedActionException("User " + user.getUsername() + " is not allowed to perform this action");
+			throw new UnauthorizedActionException(
+					"User " + user.getUsername() + " is not allowed to perform this action");
 		}
 	}
 
@@ -38,7 +38,7 @@ public abstract class AccessControlServiceUserOwned<T extends BaseModel & UserOw
 	public void canCurrentUserReadObject(Long id) throws UnauthorizedActionException {
 		canUserReadObject(getCurrentUser(), id);
 	}
-	
+
 	@Override
 	public void canUserReadAllObjects(AuthenticatedUser user) throws UnauthorizedActionException {
 		// By default, anyone can read objects
@@ -53,7 +53,8 @@ public abstract class AccessControlServiceUserOwned<T extends BaseModel & UserOw
 	public void canUserUpdateObject(AuthenticatedUser user, T object) throws UnauthorizedActionException {
 		if (!canUserModifyObject(user, object)) {
 			logger.error("The user " + ((user != null) ? user.getId() : "null") + " can't update this object");
-			throw new UnauthorizedActionException("User " + ((user != null) ? user.getUsername() : "null") + " is not allowed to perform this action");
+			throw new UnauthorizedActionException("User " + ((user != null) ? user.getUsername() : "null")
+					+ " is not allowed to perform this action");
 		}
 	}
 
@@ -66,7 +67,8 @@ public abstract class AccessControlServiceUserOwned<T extends BaseModel & UserOw
 	public void canUserDeleteObject(AuthenticatedUser user, T object) throws UnauthorizedActionException {
 		if (!canUserModifyObject(user, object)) {
 			logger.error("The user " + ((user != null) ? user.getId() : "null") + " can't delete this object");
-			throw new UnauthorizedActionException("User " + ((user != null) ? user.getUsername() : "null") + " is not allowed to perform this action");
+			throw new UnauthorizedActionException("User " + ((user != null) ? user.getUsername() : "null")
+					+ " is not allowed to perform this action");
 		}
 	}
 
@@ -74,21 +76,21 @@ public abstract class AccessControlServiceUserOwned<T extends BaseModel & UserOw
 	public void canCurrentUserDeleteObject(T object) throws UnauthorizedActionException {
 		canUserDeleteObject(getCurrentUser(), object);
 	}
-	
+
 	private boolean canUserModifyObject(AuthenticatedUser user, UserOwned obj) {
 		if (user == null) {
 			return false;
 		}
-		
+
 		return obj.getUser().equals(user.getUser());
 	}
-	
+
 	private AuthenticatedUser getCurrentUser() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication.getPrincipal() == null || authentication.getPrincipal() instanceof String) {
 			return null;
 		}
-		
+
 		return (AuthenticatedUser) authentication.getPrincipal();
 	}
 }

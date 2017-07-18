@@ -20,32 +20,32 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "user")
 public class User extends BaseModel implements UserOwned, Serializable {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(name = "email")
 	@Email(message = "Please provide a valid Email")
 	@NotEmpty(message = "Please provide an email")
 	private String email;
-	
+
 	@Column(name = "username")
 	@NotEmpty(message = "Please provide your username")
 	private String username;
-	
+
 	@Column(name = "password", unique = true)
 	@Length(min = 5, message = "Your password must have at least 5 characters")
 	@NotEmpty(message = "Please provide your password")
 	@JsonIgnore
 	private String password;
-	
+
 	@Column(name = "enabled")
 	private boolean enabled;
-	
+
 	@ManyToMany
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles;
-	
-	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)
+
+	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
 	private Calendar createdDate;
 
 	public Calendar getCreatedDate() {

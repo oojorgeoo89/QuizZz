@@ -9,9 +9,10 @@ import jorge.rv.quizzz.model.Answer;
 import jorge.rv.quizzz.model.Question;
 
 @Repository("AnswerRepository")
-public interface AnswerRepository  extends JpaRepository<Answer, Long>{
+public interface AnswerRepository extends JpaRepository<Answer, Long> {
 
 	int countByQuestion(Question question);
+
 	List<Answer> findByQuestionOrderByOrderAsc(Question question);
-	
+
 }

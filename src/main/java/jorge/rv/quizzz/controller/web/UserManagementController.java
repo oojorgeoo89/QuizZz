@@ -21,25 +21,25 @@ public class UserManagementController {
 
 	@Autowired
 	private UserManagementService userManagementService;
-	
+
 	@Autowired
 	private MessageSource messageSource;
-	
+
 	@Autowired
 	private UserService userService;
-	
+
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	public String login(@ModelAttribute User user) {
 		return "login";
 	}
-	
+
 	@RequestMapping(value = "/forgotPassword", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	public String forgotPassword() {
 		return "forgotPassword";
 	}
-	
+
 	@RequestMapping(value = "/forgotPassword", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
 	public ModelAndView forgotPassword(String email) {
@@ -47,9 +47,10 @@ public class UserManagementController {
 			User user = userService.findByEmail(email);
 			userManagementService.resendPassword(user);
 		} catch (ResourceUnavailableException e) {
-			// Ignoring Username not found to avoid showing whether the user exists or not
+			// Ignoring Username not found to avoid showing whether the user
+			// exists or not
 		}
-		
+
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("header", messageSource.getMessage("label.forgotpassword.success.header", null, null));
 		mav.addObject("subheader", messageSource.getMessage("label.forgotpassword.success.subheader", null, null));
@@ -57,29 +58,29 @@ public class UserManagementController {
 
 		return mav;
 	}
-	
+
 	@RequestMapping(value = "/{user_id}/resetPassword", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	public ModelAndView resetPassword(@PathVariable Long user_id, String token) {
 		User user = userService.find(user_id);
 		userManagementService.verifyResetPasswordToken(user, token);
-		
+
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("user", user);
 		mav.addObject("token", token);
 		mav.setViewName("resetPassword");
-		
+
 		return mav;
 	}
-	
+
 	@RequestMapping(value = "/{user_id}/resetPassword", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
 	public String resetPassword(@PathVariable Long user_id, String token, String password) {
 		User user = userService.find(user_id);
 		userManagementService.verifyResetPasswordToken(user, token);
-		
+
 		userManagementService.updatePassword(user, password);
-		
+
 		return "login";
 	}
 }

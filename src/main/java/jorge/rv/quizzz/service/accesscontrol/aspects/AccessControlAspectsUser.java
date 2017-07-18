@@ -15,7 +15,7 @@ public class AccessControlAspectsUser {
 
 	@Autowired
 	private AccessControlService<User> accessControlService;
-	
+
 	public void setAccessControlService(AccessControlService<User> accessControlService) {
 		this.accessControlService = accessControlService;
 	}
@@ -27,28 +27,28 @@ public class AccessControlAspectsUser {
 		} else {
 			accessControlService.canCurrentUserUpdateObject(user);
 		}
-		
+
 		return proceedingJoinPoint.proceed();
 	}
-	
+
 	@Around("execution(* jorge.rv.quizzz.repository.UserRepository.find(Long)) && args(id)")
 	public Object find(ProceedingJoinPoint proceedingJoinPoint, Long id) throws Throwable {
 		accessControlService.canCurrentUserReadObject(id);
-		
+
 		return proceedingJoinPoint.proceed();
 	}
-	
+
 	@Around("execution(* jorge.rv.quizzz.repository.UserRepository.findAll())")
 	public Object findAll(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 		accessControlService.canCurrentUserReadAllObjects();
-		
+
 		return proceedingJoinPoint.proceed();
 	}
 
 	@Around("execution(* jorge.rv.quizzz.repository.UserRepository.delete(..)) && args(user)")
 	public Object delete(ProceedingJoinPoint proceedingJoinPoint, User user) throws Throwable {
 		accessControlService.canCurrentUserDeleteObject(user);
-		
+
 		return proceedingJoinPoint.proceed();
 	}
 }

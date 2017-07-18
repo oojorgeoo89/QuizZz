@@ -14,19 +14,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "answer")
 public class Answer extends BaseModel implements UserOwned {
-	
-	@Size(min=1, max=50, message = "The answer should be less than 50 characters")
+
+	@Size(min = 1, max = 50, message = "The answer should be less than 50 characters")
 	@NotNull(message = "No answer text provided.")
 	private String text;
-	
+
 	@ManyToOne
 	@JsonIgnore
 	private Question question;
-	
+
 	@Column(name = "a_order")
 	private Integer order;
-	
-	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)
+
+	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
 	private Calendar createdDate;
 
 	public Calendar getCreatedDate() {
@@ -68,5 +68,5 @@ public class Answer extends BaseModel implements UserOwned {
 		return "Answer [text=" + text + ", question=" + question + ", order=" + order + ", createdDate=" + createdDate
 				+ "]";
 	}
-	
+
 }
