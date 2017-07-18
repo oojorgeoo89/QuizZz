@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,8 +18,9 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
 
-import jorge.rv.quizzz.exceptions.InvalidParametersException;
+import jorge.rv.quizzz.exceptions.ActionRefusedException;
 import jorge.rv.quizzz.exceptions.QuizZzException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
@@ -34,7 +36,6 @@ import jorge.rv.quizzz.service.QuestionServiceImpl;
 public class QuestionServiceTests {
 
 	private static final int DEFAULT_NUMBER_OF_ANSWERS = 10;
-	private static final int CORRECT_ANSWER = DEFAULT_NUMBER_OF_ANSWERS - 1;
 
 	QuestionService service;
 	
@@ -56,7 +57,7 @@ public class QuestionServiceTests {
 		quiz.setCreatedBy(user);
 		quiz.setId(1l);
 		question.setQuiz(quiz);
-		quiz.setId(1l);
+		question.setId(1l);
 		
 	}
 	
@@ -93,6 +94,19 @@ public class QuestionServiceTests {
 	@Test
 	public void testUpdateShouldUpdate() throws QuizZzException {
 		question.setText("test");
+		question.setOrder(1);
+		
+		when(questionRepository.findOne(question.getId())).thenReturn(question);
+		when(questionRepository.save(question)).thenReturn(question);
+		Question returned = service.update(question);
+		
+		verify(questionRepository, times(1)).save(question);
+		assertEquals(returned.getText(), question.getText());
+	}
+	
+	@Test
+	public void testUpdateShouldUpdate_noOrder() throws QuizZzException {
+		question.setText("test");
 		
 		when(questionRepository.findOne(question.getId())).thenReturn(question);
 		when(questionRepository.save(question)).thenReturn(question);
@@ -123,166 +137,229 @@ public class QuestionServiceTests {
 	}
 	
 	// Delete
-
+	
 	@Test
-	public void testDeleteShouldDelete() throws QuizZzException {
-		when(questionRepository.findOne(question.getId())).thenReturn(question);
-		service.delete(question.getId());
+	public void testDelete_QuizIsNotPublished_ShouldDelete() throws QuizZzException {
+		question.getQuiz().setIsPublished(false);
+		
+		service.delete(question);
 		
 		verify(questionRepository, times(1)).delete(question);
 	}
 	
-	@Test(expected = ResourceUnavailableException.class)
-	public void testDeleteUnexistentQuestion() throws QuizZzException {
-		question.setText("test");
+	@Test
+	public void testDelete_IsInvalid_ShouldDelete() throws QuizZzException {
+		question.getQuiz().setIsPublished(true);
+		question.setIsValid(false);
 		
-		when(questionRepository.findOne(question.getId())).thenReturn(null);
+		service.delete(question);
 		
-		service.delete(question.getId());
+		verify(questionRepository, times(1)).delete(question);
+	}
+	
+	@Test
+	public void testDelete_SeveralValidQuestions_ShouldDelete() throws QuizZzException {
+		question.getQuiz().setIsPublished(true);
+		question.setIsValid(true);
+		when(questionRepository.countByQuizAndIsValidTrue(question.getQuiz())).thenReturn(2);
+		
+		service.delete(question);
+		
+		verify(questionRepository, times(1)).delete(question);
+	}
+	
+	@Test(expected = ActionRefusedException.class)
+	public void testDelete_SeveralValidQuestions_ShouldntDelete() throws QuizZzException {
+		question.getQuiz().setIsPublished(true);
+		question.setIsValid(true);
+		when(questionRepository.countByQuizAndIsValidTrue(question.getQuiz())).thenReturn(1);
+		
+		service.delete(question);
+		
+		verify(questionRepository, times(1)).delete(question);
 	}
 	
 	@Test(expected = UnauthorizedActionException.class)
 	public void testDeleteFromWrongUser() throws QuizZzException {
-		question.setText("test");
-		
-		when(questionRepository.findOne(question.getId())).thenReturn(question);
 		doThrow(new UnauthorizedActionException())
 			.when(questionRepository).delete(question);
 		
-		service.delete(question.getId());
+		service.delete(question);
 	}
-	
-	// FindAnswersById
 	
 	@Test
-	public void testFindAnswersByQuestionWithAvailableQuestionAndEmptyQuestions() throws ResourceUnavailableException {
-		when(answerService.findQuestionsByQuiz(question)).thenReturn(new ArrayList<>());
-		when(questionRepository.findOne(question.getId())).thenReturn(question);
-		
-		List<Answer> answers = service.findAnswersByQuestion(question.getId());
-		
-		assertEquals(0, answers.size());
-	}
-
-	@Test
-	public void testFindAnswersByQuestionWithAvailableQuestionAndAnswersAvailable() throws ResourceUnavailableException {
-		ArrayList<Answer> originalAnswers = new ArrayList<>();
-		originalAnswers.add(new Answer());
-		originalAnswers.add(new Answer());
-		originalAnswers.add(new Answer());
-		
-		when(answerService.findQuestionsByQuiz(question)).thenReturn(originalAnswers);
-		when(questionRepository.findOne(question.getId())).thenReturn(question);
-		
-		List<Answer> answers = service.findAnswersByQuestion(question.getId());
-		
-		assertEquals(3, answers.size());
-	}
-	
-	@Test(expected = ResourceUnavailableException.class)
-	public void testFindQuestionsByQuizWithInvalidQuizID() throws ResourceUnavailableException {
-		when(questionRepository.findOne(question.getId())).thenReturn(null);
-		
-		service.findAnswersByQuestion(question.getId());
-	}
-	
-	@Test(expected = InvalidParametersException.class)
-	public void testCheckAnswer_answerNotFound_shouldThrowException() {
-		List<Answer> listAnswers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
-		question.setAnswers(listAnswers);
-		
-		service.checkAnswer(question, (long) (DEFAULT_NUMBER_OF_ANSWERS + 5));
-	}
-	
-	@Test()
 	public void testCheckAnswer_answerFound_shouldReturnCorrect() {
-		List<Answer> listAnswers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
-		question.setAnswers(listAnswers);
+		Answer correctAnswer = new Answer();
+		correctAnswer.setId(1l);
+		question.setCorrectAnswer(correctAnswer);
+		question.setIsValid(true);
 		
-		when(answerService.checkAnswer(any(Answer.class))).thenReturn(true);
+		boolean isCorrect = service.checkIsCorrectAnswer(question, correctAnswer.getId());
 		
-		boolean isCorrect = service.checkAnswer(question, (long) (DEFAULT_NUMBER_OF_ANSWERS-1));
-		
-		verify(answerService, times(1)).checkAnswer(any(Answer.class));
 		assertTrue(isCorrect);
 	}
 	
 	@Test
 	public void testCheckAnswer_answerFound_shouldReturnIncorrect() {
-		List<Answer> listAnswers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
-		question.setAnswers(listAnswers);
+		Answer correctAnswer = new Answer();
+		correctAnswer.setId(1l);
+		question.setCorrectAnswer(correctAnswer);
+		question.setIsValid(true);
 		
-		when(answerService.checkAnswer(any(Answer.class))).thenReturn(false);
+		boolean isCorrect = service.checkIsCorrectAnswer(question, correctAnswer.getId() + 1);
 		
-		boolean isCorrect = service.checkAnswer(question, (long) (DEFAULT_NUMBER_OF_ANSWERS-1));
-		
-		verify(answerService, times(1)).checkAnswer(any(Answer.class));
 		assertFalse(isCorrect);
 	}
 	
-	@Test(expected = ResourceUnavailableException.class)
-	public void testSetCorrectAnswer_questionDoesntExist_shouldThrowException() {
-		when(questionRepository.findOne(question.getId())).thenThrow(new ResourceUnavailableException());
+	@Test
+	public void testCheckAnswer_questionIsInvalid_shouldReturnIncorrect() {
+		Answer correctAnswer = new Answer();
+		correctAnswer.setId(1l);
+		question.setCorrectAnswer(correctAnswer);
+		question.setIsValid(false);
 		
-		service.setCorrectAnswer(question.getId(), 3l);
+		boolean isCorrect = service.checkIsCorrectAnswer(question, correctAnswer.getId());
+		
+		assertFalse(isCorrect);
 	}
 	
 	@Test
-	public void testSetCorrectAnswer_onlyTheCorrectShouldBeSetAsCorrect() {
-		List<Answer> answers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
+	public void testCheckAnswer_questionDoesntHaveCorrectAnswerSet_shouldReturnIncorrect() {
+		question.setIsValid(true);
 		
-		// Set half as correct and half as incorrect
-		for (int i=0; i<answers.size(); i++) {
-			if (i < DEFAULT_NUMBER_OF_ANSWERS/2) {
-				answers.get(i).setIscorrect(true);
-			} else {
-				answers.get(i).setIscorrect(false);
-			}
-		}
+		boolean isCorrect = service.checkIsCorrectAnswer(question, 1l);
 		
-		question.setAnswers(answers);
-		when(questionRepository.findOne(question.getId())).thenReturn(question);
-		
-		service.setCorrectAnswer(question.getId(), (long) CORRECT_ANSWER);
-		
-		// Check that the answer list is now correct and that the repository has been updated
-		// at least with the answers that have changed.
-		for (Answer answer : answers) {
-			if (answer.getId() == CORRECT_ANSWER) {
-				assertTrue(answer.getIscorrect());
-			} else {
-				assertFalse(answer.getIscorrect());
-			}
-		}
-		
-		for (int i=0; i<DEFAULT_NUMBER_OF_ANSWERS/2; i++) {
-			verify(answerService, times(1)).save(answers.get(i));
-		}
-		
-		verify(answerService, times(1)).save(answers.get(CORRECT_ANSWER));
+		assertFalse(isCorrect);
 	}
 	
 	@Test
 	public void testGetCorrectAnswer_noCorrectAnswerSet_shouldReturnNull() {
 		List<Answer> answers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
 		question.setAnswers(answers);
-		when(questionRepository.findOne(question.getId())).thenReturn(question);
 		
-		Answer correctAnswer = service.getCorrectAnswer(question.getId());
+		Answer correctAnswer = service.getCorrectAnswer(question);
 		
 		assertNull(correctAnswer);
 	}
 	
 	@Test
 	public void testGetCorrectAnswer_correctAnswerSet_shouldReturnIt() {
-		List<Answer> answers = generateAnswers(DEFAULT_NUMBER_OF_ANSWERS);
-		answers.get(CORRECT_ANSWER).setIscorrect(true);
-		question.setAnswers(answers);
-		when(questionRepository.findOne(question.getId())).thenReturn(question);
+		Answer answer = new Answer();
+		answer.setId(1l);
+		question.setCorrectAnswer(answer);
+		question.setIsValid(true);
 		
-		Answer correctAnswer = service.getCorrectAnswer(question.getId());
+		Answer correctAnswer = service.getCorrectAnswer(question);
 		
-		assertEquals(answers.get(CORRECT_ANSWER), correctAnswer);
+		assertEquals(answer, correctAnswer);
+	}
+	
+	@Test
+	public void testSetCorrectAnswer_shouldSetIt() {
+		Answer answer = new Answer();
+		answer.setId(1l);
+		
+		service.setCorrectAnswer(question, answer);
+		
+		assertEquals(answer, question.getCorrectAnswer());
+	}
+	
+	@Test
+	public void testAddAnswerToQuestion_firstAnswer_shouldEnableQuestionAndMarkItAsCorrect() {
+		when(answerService.countAnswersInQuestion(question)).thenReturn(0);
+		question.setIsValid(false);
+		question.setCorrectAnswer(null);
+		Answer answer = new Answer();
+		answer.setId(1l);
+		
+		when(answerService.save(any(Answer.class))).thenAnswer(new org.mockito.stubbing.Answer<Answer>() {
+		    @Override
+		    public Answer answer(InvocationOnMock invocation) throws Throwable {
+		      Object[] args = invocation.getArguments();
+		      return (Answer) args[0];
+		    }
+		  });
+		
+		
+		service.addAnswerToQuestion(answer, question);
+		
+		assertTrue(question.getIsValid());
+		assertEquals(answer, question.getCorrectAnswer());
+		verify(answerService, times(1)).save(answer);
+		verify(questionRepository, times(2)).save(question);
+	}
+	
+	@Test
+	public void testAddAnswerToQuestion_firstAnswerButValid_shouldMarkItAsCorrect() {
+		when(answerService.countAnswersInQuestion(question)).thenReturn(0);
+		question.setIsValid(true);
+		question.setCorrectAnswer(null);
+		Answer answer = new Answer();
+		answer.setId(1l);
+		
+		when(answerService.save(any(Answer.class))).thenAnswer(new org.mockito.stubbing.Answer<Answer>() {
+		    @Override
+		    public Answer answer(InvocationOnMock invocation) throws Throwable {
+		      Object[] args = invocation.getArguments();
+		      return (Answer) args[0];
+		    }
+		  });
+		
+		
+		service.addAnswerToQuestion(answer, question);
+		
+		assertTrue(question.getIsValid());
+		assertEquals(answer, question.getCorrectAnswer());
+		verify(answerService, times(1)).save(answer);
+		verify(questionRepository, times(1)).save(question);
+	}
+	
+	@Test
+	public void testAddAnswerToQuestion_notFirstAnswerInvalidQuestion_shouldNotMarkItAsCorrect_shouldMarkItAsValid() {
+		when(answerService.countAnswersInQuestion(question)).thenReturn(1);
+		question.setIsValid(false);
+		question.setCorrectAnswer(null);
+		Answer answer = new Answer();
+		answer.setId(1l);
+		
+		when(answerService.save(any(Answer.class))).thenAnswer(new org.mockito.stubbing.Answer<Answer>() {
+		    @Override
+		    public Answer answer(InvocationOnMock invocation) throws Throwable {
+		      Object[] args = invocation.getArguments();
+		      return (Answer) args[0];
+		    }
+		  });
+		
+		
+		service.addAnswerToQuestion(answer, question);
+		
+		assertTrue(question.getIsValid());
+		verify(answerService, times(1)).save(answer);
+		verify(questionRepository, times(1)).save(question);
+	}
+	
+	@Test
+	public void testAddAnswerToQuestion_notFirstAnswer_shouldNotMarkItAsCorrect() {
+		when(answerService.countAnswersInQuestion(question)).thenReturn(1);
+		question.setIsValid(true);
+		question.setCorrectAnswer(null);
+		Answer answer = new Answer();
+		answer.setId(1l);
+		
+		when(answerService.save(any(Answer.class))).thenAnswer(new org.mockito.stubbing.Answer<Answer>() {
+		    @Override
+		    public Answer answer(InvocationOnMock invocation) throws Throwable {
+		      Object[] args = invocation.getArguments();
+		      return (Answer) args[0];
+		    }
+		  });
+		
+		
+		service.addAnswerToQuestion(answer, question);
+		
+		assertTrue(question.getIsValid());
+		verify(answerService, times(1)).save(answer);
+		verify(questionRepository, never()).save(question);
 	}
 	
 	private List<Answer> generateAnswers(int numberOfAnswers) {

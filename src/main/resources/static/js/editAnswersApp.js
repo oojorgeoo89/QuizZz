@@ -24,7 +24,7 @@
 		$scope.refreshCorrectAnswer = function() {
 			var url = "/api/questions/" + $scope.questionId + "/correctAnswer";
 			
-			$http.get(url + "?answer_id=" + $scope.correctAnswer)
+			$http.get(url)
 				.then(
 						function(response) {
 							if (response.data != "") {

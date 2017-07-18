@@ -11,12 +11,16 @@ import jorge.rv.quizzz.model.Quiz;
 public interface QuestionService {
 	Question save(Question question) throws UnauthorizedActionException;
 	Question find(Long id) throws ResourceUnavailableException;
-	Question update(Question question) throws ResourceUnavailableException, UnauthorizedActionException;
-	void delete(Long id) throws  ResourceUnavailableException, UnauthorizedActionException;
-	
-	List<Answer> findAnswersByQuestion(Long id) throws ResourceUnavailableException;
-	Boolean checkAnswer(Question question, Long selectedAnswer);
 	List<Question> findQuestionsByQuiz(Quiz quiz);
-	void setCorrectAnswer(Long questionId, Long answerId);
-	Answer getCorrectAnswer(Long id);
+	List<Question> findValidQuestionsByQuiz(Quiz quiz);
+	Question update(Question question) throws ResourceUnavailableException, UnauthorizedActionException;
+	void delete(Question question) throws  ResourceUnavailableException, UnauthorizedActionException;
+	
+	Boolean checkIsCorrectAnswer(Question question, Long answer_id);
+	void setCorrectAnswer(Question question, Answer answer);
+	Answer getCorrectAnswer(Question question);
+	Answer addAnswerToQuestion(Answer answer, Question question);
+	
+	int countQuestionsInQuiz(Quiz quiz);
+	int countValidQuestionsInQuiz(Quiz quiz);
 }

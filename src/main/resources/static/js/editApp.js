@@ -11,8 +11,7 @@
 			$http.get("/api/quizzes/" + $scope.quizId)
 			.then(
 					function(response) {
-						$scope.quizName = response.data.name;
-						$scope.quizDescription = response.data.description;
+						$scope.quiz = response.data;
 					}, 
 					function(reason) {
 						console.log(reason.data);
@@ -42,7 +41,7 @@
 			if ($scope.quizId != 0)
 				url = url + $scope.quizId + "/";
 
-			$http.post(url + "?name=" + $scope.quizName + "&description=" + $scope.quizDescription)
+			$http.post(url + "?name=" + $scope.quiz.name + "&description=" + $scope.quiz.description)
 			.then(
 					function(response) {
 						console.log(response.data);
@@ -88,6 +87,24 @@
 					}, 
 					function(reason) {
 						console.log(reason.data);
+					}
+			);
+		}
+		
+		$scope.publish = function() {
+			var url = "/api/quizzes/" + $scope.quizId + "/publish";
+			
+			$scope.saveAll();
+
+			$http.post(url)
+			.then(
+					function(response) {
+						console.log(response.data);
+						$scope.quiz.isPublished=false;
+					}, 
+					function(reason) {
+						console.log(reason.data);
+						alert("Please, set up at least one question with answers");
 					}
 			);
 		}

@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jorge.rv.quizzz.exceptions.InvalidParametersException;
+import jorge.rv.quizzz.exceptions.ActionRefusedException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Answer;
@@ -17,6 +17,7 @@ import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.repository.QuestionRepository;
 
 @Service("QuestionService")
+@Transactional
 public class QuestionServiceImpl implements QuestionService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QuestionServiceImpl.class);
@@ -31,7 +32,6 @@ public class QuestionServiceImpl implements QuestionService {
 	}
 	
 	@Override
-	@Transactional
 	public Question save(Question question) throws UnauthorizedActionException {
 		int count = questionRepository.countByQuiz(question.getQuiz());
 		question.setOrder(count + 1);
@@ -40,7 +40,6 @@ public class QuestionServiceImpl implements QuestionService {
 	}
 	
 	@Override
-	@Transactional(readOnly = true)
 	public Question find(Long id) throws ResourceUnavailableException {
 		Question question = questionRepository.findOne(id);
 		
@@ -53,7 +52,6 @@ public class QuestionServiceImpl implements QuestionService {
 	}
 
 	@Override
-	@Transactional
 	public Question update(Question newQuestion) throws ResourceUnavailableException, UnauthorizedActionException {
 		Question currentQuestion = find(newQuestion.getId());
 		
@@ -62,19 +60,16 @@ public class QuestionServiceImpl implements QuestionService {
 	}
 	
 	@Override
-	@Transactional
-	public void delete(Long id) throws ResourceUnavailableException, UnauthorizedActionException {
-		Question currentQuestion = find(id);
+	public void delete(Question question) throws ResourceUnavailableException, UnauthorizedActionException {
+		Quiz quiz = question.getQuiz();
 		
-		questionRepository.delete(currentQuestion);
-	}
-	
-	@Override
-	@Transactional(readOnly = true)
-	public List<Answer> findAnswersByQuestion(Long id) throws ResourceUnavailableException {
-		Question question = find(id);
+		if (quiz.getIsPublished()
+				&& question.getIsValid()
+				&& countValidQuestionsInQuiz(quiz) <= 1) {
+			throw new ActionRefusedException("A published Quiz can't contain less than one valid question");
+		}
 		
-		return answerService.findQuestionsByQuiz(question);
+		questionRepository.delete(question);
 	}
 
 	private void mergeQuestions(Question currentQuestion, Question newQuestion) {
@@ -85,50 +80,78 @@ public class QuestionServiceImpl implements QuestionService {
 	}
 
 	@Override
-	public Boolean checkAnswer(Question question, Long selectedAnswer) {
-		for (Answer answer : question.getAnswers()) {
-			if (answer.getId().equals(selectedAnswer)) {
-				return answerService.checkAnswer(answer);
-			}
+	public Boolean checkIsCorrectAnswer(Question question, Long answer_id) {
+		if (!question.getIsValid() || question.getCorrectAnswer() == null) {
+			return false;
 		}
 		
-		throw new InvalidParametersException("The answer '" + selectedAnswer + "' is not available");
+		return question.getCorrectAnswer().getId().equals(answer_id);
 	}
 
 	@Override
 	public List<Question> findQuestionsByQuiz(Quiz quiz) {
 		return questionRepository.findByQuizOrderByOrderAsc(quiz);
 	}
+	
+	@Override
+	public List<Question> findValidQuestionsByQuiz(Quiz quiz) {
+		return questionRepository.findByQuizAndIsValidTrueOrderByOrderAsc(quiz);
+	}
 
 	@Override
-	public void setCorrectAnswer(Long questionId, Long answerId) {
-		Question question = find(questionId);
-		for (Answer answer : question.getAnswers()) {
-			if (answer.getId().equals(answerId)) {
-				if (answer.getIscorrect() == false) {
-					answer.setIscorrect(true);
-					answerService.save(answer);
-				}
-			} else {
-				if (answer.getIscorrect() == true) {
-					answer.setIscorrect(false);
-					answerService.save(answer);
-				}
-			}
+	public void setCorrectAnswer(Question question, Answer answer) {
+		question.setCorrectAnswer(answer);
+		save(question);
+	}
+
+	@Override
+	public Answer addAnswerToQuestion(Answer answer, Question question) {
+		int count = answerService.countAnswersInQuestion(question);
+		Answer newAnswer = updateAndSaveAnswer(answer, question, count);
+		
+		checkQuestionInitialization(question, count, newAnswer);
+		
+		return newAnswer;
+	}
+
+	private void checkQuestionInitialization(Question question, int count, Answer newAnswer) {
+		checkAndUpdateQuestionValidity(question, true);
+		setCorrectAnswerIfFirst(question, count, newAnswer);
+	}
+
+	private Answer updateAndSaveAnswer(Answer answer, Question question, int count) {
+		answer.setOrder(count+1);
+		answer.setQuestion(question);
+		return answerService.save(answer);
+	}
+
+	private void checkAndUpdateQuestionValidity(Question question, boolean newState) {
+		if (!question.getIsValid()) {
+			question.setIsValid(newState);
+			save(question);
+		}
+	}
+	
+	private void setCorrectAnswerIfFirst(Question question, int count, Answer newAnswer) {
+		if (count == 0) {
+			question.setCorrectAnswer(newAnswer);
+			questionRepository.save(question);
 		}
 	}
 
 	@Override
-	public Answer getCorrectAnswer(Long id) {
-		Question question = find(id);
-		
-		for (Answer answer : question.getAnswers()) {
-			if (answer.getIscorrect()) {
-				return answer;
-			}
-		}
-		
-		return null;
+	public int countQuestionsInQuiz(Quiz quiz) {
+		return questionRepository.countByQuiz(quiz);
+	}
+	
+	@Override
+	public int countValidQuestionsInQuiz(Quiz quiz) {
+		return questionRepository.countByQuizAndIsValidTrue(quiz);
+	}
+
+	@Override
+	public Answer getCorrectAnswer(Question question) {
+		return question.getCorrectAnswer();
 	}
 
 }

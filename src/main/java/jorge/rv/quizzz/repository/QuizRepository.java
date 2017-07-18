@@ -12,8 +12,10 @@ import jorge.rv.quizzz.model.User;
 @Repository("QuizRepository")
 public interface QuizRepository extends PagingAndSortingRepository<Quiz, Long> {
 
-	Page<Quiz> findByCreatedBy(User user, Pageable pageable);
+	Page<Quiz> findByIsPublishedTrue(Pageable pageable);
 	
+	Page<Quiz> findByCreatedBy(User user, Pageable pageable);
+		
 	@Query("select q from Quiz q where q.name like %?1%")
 	Page<Quiz> searchByName(String name, Pageable pageable);
 }

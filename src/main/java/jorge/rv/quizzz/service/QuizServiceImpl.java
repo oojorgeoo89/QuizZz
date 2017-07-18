@@ -10,17 +10,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jorge.rv.quizzz.exceptions.ActionRefusedException;
 import jorge.rv.quizzz.exceptions.InvalidParametersException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.model.User;
-import jorge.rv.quizzz.model.support.AnswersBundle;
-import jorge.rv.quizzz.model.support.Results;
+import jorge.rv.quizzz.model.support.Response;
+import jorge.rv.quizzz.model.support.Result;
 import jorge.rv.quizzz.repository.QuizRepository;
 
 @Service("QuizService")
+@Transactional
 public class QuizServiceImpl implements QuizService {
 
 	private static final Logger logger = LoggerFactory.getLogger(QuizServiceImpl.class);
@@ -35,21 +37,22 @@ public class QuizServiceImpl implements QuizService {
 	}
 	
 	@Override
-	@Transactional
 	public Quiz save(Quiz quiz, User user) {
 		quiz.setCreatedBy(user);
-		Quiz q = quizRepository.save(quiz);
-		return q;
+		return quizRepository.save(quiz);
 	}
 
 	@Override
-	@Transactional(readOnly = true)
 	public Page<Quiz> findAll(Pageable pageable) {
 		return quizRepository.findAll(pageable);
 	}
+	
+	@Override
+	public Page<Quiz> findAllPublished(Pageable pageable) {
+		return quizRepository.findByIsPublishedTrue(pageable);
+	}
 
 	@Override
-	@Transactional(readOnly = true)
 	public Quiz find(Long id) throws ResourceUnavailableException {
 		Quiz quiz = quizRepository.findOne(id);
 		
@@ -62,7 +65,6 @@ public class QuizServiceImpl implements QuizService {
 	}
 
 	@Override
-	@Transactional
 	public Quiz update(Quiz newQuiz) throws UnauthorizedActionException, ResourceUnavailableException {
 		Quiz currentQuiz = find(newQuiz.getId());
 		
@@ -71,20 +73,9 @@ public class QuizServiceImpl implements QuizService {
 	}
 
 	@Override
-	@Transactional
-	public void delete(Long id) throws ResourceUnavailableException, UnauthorizedActionException {
-		Quiz currentQuiz = find(id);
-		
-		quizRepository.delete(currentQuiz);
+	public void delete(Quiz quiz) throws ResourceUnavailableException, UnauthorizedActionException {
+		quizRepository.delete(quiz);
 	}
-
-	@Override
-	@Transactional
-	public List<Question> findQuestionsByQuiz(Long id) throws ResourceUnavailableException {
-		Quiz question = find(id);
-		
-		return questionService.findQuestionsByQuiz(question);
-	}	
 
 	private void mergeQuizzes(Quiz currentQuiz, Quiz newQuiz) {
 		currentQuiz.setName(newQuiz.getName());
@@ -102,25 +93,42 @@ public class QuizServiceImpl implements QuizService {
 	}
 
 	@Override
-	public Results checkAnswers(Long quiz_id, List<AnswersBundle> answersBundle) {
-		Results results = new Results();
-		Quiz quiz = find(quiz_id);
+	public Result checkAnswers(Quiz quiz, List<Response> answersBundle) {
+		Result results = new Result();
 		
 		for (Question question : quiz.getQuestions()) {
 			boolean isFound = false;
-			for (AnswersBundle bundle : answersBundle) {
+			
+			if (!question.getIsValid()) {
+				continue;
+			}
+			
+			for (Response bundle : answersBundle) {
 				if (bundle.getQuestion().equals(question.getId())) {
 					isFound = true;
-					results.addAnswer(questionService.checkAnswer(question, bundle.getSelectedAnswer()));
+					results.addAnswer(questionService.checkIsCorrectAnswer(question, bundle.getSelectedAnswer()));
 					break;
 				}
 			}
 			
-			if (isFound == false)
+			if (!isFound) {
 				throw new InvalidParametersException("No answer found for question: " + question.getText());
+			}
 		}
 		
 		return results;
-	}	
+	}
+
+	@Override
+	public void publishQuiz(Quiz quiz) {
+		int count = questionService.countValidQuestionsInQuiz(quiz);
+		
+		if (count > 0) {
+			quiz.setIsPublished(true);
+			quizRepository.save(quiz);
+		} else {
+			throw new ActionRefusedException("The quiz doesn't have any valid questions");
+		}
+	}
 	
 }

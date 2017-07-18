@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jorge.rv.quizzz.exceptions.ActionRefusedException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Answer;
@@ -15,18 +16,25 @@ import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.repository.AnswerRepository;
 
 @Service("AnswerService")
+@Transactional
 public class AnswerServiceImpl implements AnswerService {
 
 	private static final Logger logger = LoggerFactory.getLogger(AnswerServiceImpl.class);
 	private AnswerRepository answerRepository;
 	
 	@Autowired
+	private QuestionService questionService;
+	
+	@Autowired
 	public AnswerServiceImpl(AnswerRepository answerRepository) {
 		this.answerRepository = answerRepository;
 	}
 
+	public void setQuestionService(QuestionService questionService) {
+		this.questionService = questionService;
+	}
+
 	@Override
-	@Transactional(readOnly = true)
 	public Answer find(Long id) throws ResourceUnavailableException {
 		Answer answer = answerRepository.findOne(id);
 		
@@ -39,16 +47,11 @@ public class AnswerServiceImpl implements AnswerService {
 	}
 	
 	@Override
-	@Transactional
 	public Answer save(Answer answer) throws UnauthorizedActionException {
-		int count = answerRepository.countByQuestion(answer.getQuestion());
-		answer.setOrder(count + 1);
-		
 		return answerRepository.save(answer);
 	}
 
 	@Override
-	@Transactional
 	public Answer update(Answer newAnswer) throws ResourceUnavailableException, UnauthorizedActionException {
 		Answer currentAnswer = find(newAnswer.getId());
 		
@@ -57,30 +60,31 @@ public class AnswerServiceImpl implements AnswerService {
 	}
 
 	@Override
-	@Transactional
-	public void delete(Long id) throws ResourceUnavailableException, UnauthorizedActionException {
-		Answer currentAnswer = find(id);
+	public void delete(Answer answer) throws ResourceUnavailableException, UnauthorizedActionException {
 		
-		answerRepository.delete(currentAnswer);
+		if (questionService.checkIsCorrectAnswer(answer.getQuestion(), answer.getId())) {
+			throw new ActionRefusedException("The correct answer can't be deleted");
+		}
+		
+		answerRepository.delete(answer);
 	}
 	
 	private void mergeAnswers(Answer currentAnswer, Answer newAnswer) {
 		currentAnswer.setText(newAnswer.getText());
-		currentAnswer.setIscorrect(newAnswer.getIscorrect());
 		
 		if (newAnswer.getOrder() != null) {
 			currentAnswer.setOrder(newAnswer.getOrder());
 		}
 	}
-
+	
 	@Override
-	public Boolean checkAnswer(Answer answer) {
-		return answer.getIscorrect();
+	public List<Answer> findAnswersByQuestion(Question question) {
+		return answerRepository.findByQuestionOrderByOrderAsc(question);
 	}
 
 	@Override
-	public List<Answer> findQuestionsByQuiz(Question question) {
-		return answerRepository.findByQuestionOrderByOrderAsc(question);
+	public int countAnswersInQuestion(Question question) {
+		return answerRepository.countByQuestion(question);
 	}
 
 }

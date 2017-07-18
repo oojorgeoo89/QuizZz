@@ -44,8 +44,7 @@ public class AnswerController {
 		RestVerifier.verifyModelResult(result);
 		
 		Question question = questionService.find(question_id);
-		answer.setQuestion(question);
-		return answerService.save(answer);
+		return questionService.addAnswerToQuestion(answer, question);
 	}
 	
 	@RequestMapping(value = "/updateAll", method = RequestMethod.POST)
@@ -85,7 +84,7 @@ public class AnswerController {
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
 	public void delete(@PathVariable Long answer_id) {
-		
-		answerService.delete(answer_id);
+		Answer answer = answerService.find(answer_id);
+		answerService.delete(answer);
 	}
 }

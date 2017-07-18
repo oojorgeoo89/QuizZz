@@ -23,8 +23,9 @@ import jorge.rv.quizzz.controller.utils.RestVerifier;
 import jorge.rv.quizzz.model.AuthenticatedUser;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
-import jorge.rv.quizzz.model.support.AnswersBundle;
-import jorge.rv.quizzz.model.support.Results;
+import jorge.rv.quizzz.model.support.Response;
+import jorge.rv.quizzz.model.support.Result;
+import jorge.rv.quizzz.service.QuestionService;
 import jorge.rv.quizzz.service.QuizService;
 
 @RestController
@@ -36,17 +37,30 @@ public class QuizController {
 	@Autowired
 	private QuizService quizService;
 	
+	@Autowired
+	private QuestionService questionService;
+	
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
 	public Page<Quiz> findAll(Pageable pageable,
-										@RequestParam(required = false) String filter) {
+										@RequestParam(required = false, defaultValue = "false") Boolean published) {
 		
-		if (filter == null) {
-			return quizService.findAll(pageable);
+		if (published) {
+			return quizService.findAllPublished(pageable);
 		} else {
-			return quizService.search(filter, pageable);
+			return quizService.findAll(pageable);
 		}
+	}
+	
+	@RequestMapping(value = "/search", method = RequestMethod.GET)
+	@PreAuthorize("permitAll")
+	@ResponseStatus(HttpStatus.OK)
+	public Page<Quiz> searchAll(Pageable pageable,
+										@RequestParam(required = true) String filter,
+										@RequestParam(required = false, defaultValue = "false") Boolean onlyValid) {
+		
+		return quizService.search(filter, pageable);
 	}
 	
 	@RequestMapping(value = "", method = RequestMethod.POST)
@@ -82,23 +96,40 @@ public class QuizController {
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
 	public void delete(@PathVariable Long quiz_id) {
-		
-		quizService.delete(quiz_id);
+		Quiz quiz = quizService.find(quiz_id);
+		quizService.delete(quiz);
 	}
 	
 	@RequestMapping(value = "/{quiz_id}/questions", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
-	public List<Question> findQuestions(@PathVariable Long quiz_id) {
+	public List<Question> findQuestions(@PathVariable Long quiz_id, 
+			@RequestParam(required = false, defaultValue = "false") Boolean onlyValid) {
 		
-		return quizService.findQuestionsByQuiz(quiz_id);
+		Quiz quiz = quizService.find(quiz_id);
+		
+		if (onlyValid) {
+			return questionService.findValidQuestionsByQuiz(quiz);
+		} else {
+			return questionService.findQuestionsByQuiz(quiz);
+		}
+		
+	}
+	
+	@RequestMapping(value = "/{quiz_id}/publish", method = RequestMethod.POST)
+	@PreAuthorize("isAuthenticated()")
+	@ResponseStatus(HttpStatus.OK)
+	public void publishQuiz(@PathVariable long quiz_id) {
+		Quiz quiz = quizService.find(quiz_id);
+		quizService.publishQuiz(quiz);
 	}
 	
 	@RequestMapping(value = "/{quiz_id}/submitAnswers", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
-	public Results playQuiz(@PathVariable long quiz_id, @RequestBody List<AnswersBundle> answersBundle) {
-		return quizService.checkAnswers(quiz_id, answersBundle);
+	public Result playQuiz(@PathVariable long quiz_id, @RequestBody List<Response> answersBundle) {
+		Quiz quiz = quizService.find(quiz_id);
+		return quizService.checkAnswers(quiz, answersBundle);
 	}
 	
 }

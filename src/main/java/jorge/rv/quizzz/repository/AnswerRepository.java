@@ -12,7 +12,6 @@ import jorge.rv.quizzz.model.Question;
 public interface AnswerRepository  extends JpaRepository<Answer, Long>{
 
 	int countByQuestion(Question question);
-
 	List<Answer> findByQuestionOrderByOrderAsc(Question question);
 	
 }

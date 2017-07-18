@@ -1,6 +1,6 @@
 package jorge.rv.quizzz.model.support;
 
-public class Results {
+public class Result {
 	private int totalQuestions = 0;
 	private int correctQuestions = 0;
 	

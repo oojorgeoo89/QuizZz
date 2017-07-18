@@ -22,10 +22,6 @@ public class Answer extends BaseModel implements UserOwned {
 	@ManyToOne
 	@JsonIgnore
 	private Question question;
-
-	@JsonIgnore
-	@NotNull
-	private Boolean iscorrect = false;
 	
 	@Column(name = "a_order")
 	private Integer order;
@@ -53,14 +49,6 @@ public class Answer extends BaseModel implements UserOwned {
 		this.question = question;
 	}
 
-	public Boolean getIscorrect() {
-		return iscorrect;
-	}
-
-	public void setIscorrect(Boolean isCorrect) {
-		this.iscorrect = isCorrect;
-	}
-
 	@Override
 	@JsonIgnore
 	public User getUser() {
@@ -73,6 +61,12 @@ public class Answer extends BaseModel implements UserOwned {
 
 	public void setOrder(Integer order) {
 		this.order = order;
+	}
+
+	@Override
+	public String toString() {
+		return "Answer [text=" + text + ", question=" + question + ", order=" + order + ", createdDate=" + createdDate
+				+ "]";
 	}
 	
 }

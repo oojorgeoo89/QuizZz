@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -19,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Table(name = "question")
 public class Question extends BaseModel implements UserOwned {
 
-	@Size(min=2, max=20, message = "The question should be between 2 and 20 characters")
+	@Size(min=2, max=150, message = "The question should be between 2 and 150 characters")
 	@NotNull(message = "Question text not provided")
 	private String text;
 	
@@ -34,8 +35,15 @@ public class Question extends BaseModel implements UserOwned {
 	@OneToMany(mappedBy="question", cascade=CascadeType.ALL, fetch=FetchType.LAZY)
 	private List<Answer> answers;
 	
+	@JsonIgnore
+	@OneToOne
+	private Answer correctAnswer;
+	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)
 	private Calendar createdDate;
+	
+	@JsonIgnore
+	private Boolean isValid = false;
 
 	public Calendar getCreatedDate() {
 		return createdDate;
@@ -77,6 +85,22 @@ public class Question extends BaseModel implements UserOwned {
 
 	public void setOrder(Integer order) {
 		this.order = order;
+	}
+
+	public Boolean getIsValid() {
+		return isValid;
+	}
+
+	public void setIsValid(Boolean isValid) {
+		this.isValid = isValid;
+	}
+
+	public Answer getCorrectAnswer() {
+		return correctAnswer;
+	}
+
+	public void setCorrectAnswer(Answer correctAnswer) {
+		this.correctAnswer = correctAnswer;
 	}
 
 }

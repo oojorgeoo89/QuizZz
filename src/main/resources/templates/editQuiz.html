@@ -21,15 +21,13 @@
 				
 					<div class="form-group">
 						<label th:text="#{label.newquiz.title}">Title</label>
-				        <input th:placeholder="#{label.newquiz.title.placeholder}" name="name" class="form-control" required="true" autofocus="true"  ng-model="quizName"/>
+				        <input th:placeholder="#{label.newquiz.title.placeholder}" name="name" class="form-control" required="true" autofocus="true"  ng-model="quiz.name"/>
 				        <br/>
 				        <label th:text="#{label.newquiz.description}">Description</label>
-				        <textarea th:placeholder="#{label.newquiz.description.placeholder}" name="description" class="form-control" rows="3" ng-model="quizDescription" > </textarea>
-				        <br/>
-				        <button th:text="#{label.editquiz.submit.saveQuiz}" class="btn btn-lg btn-primary btn-block" type="submit"  ng-click="saveQuiz()">Update</button>
+				        <textarea th:placeholder="#{label.newquiz.description.placeholder}" name="description" class="form-control" rows="3" ng-model="quiz.description" > </textarea>
 			        </div>
 			        
-			        <br/>
+			        <hr/>
 			        <h2 th:text="#{label.editquiz.questionstitle}" class="form-signin-heading text-center">New Quiz</h2>
 					<br/>
 			        
@@ -83,8 +81,9 @@
 						</ul>
 						
 			        </div>
-			        <div>
-						<button th:text="#{label.editquiz.submit.saveAll}" class="btn btn-lg btn-primary btn-block" type="submit"  ng-click="saveAll()">Update</button>
+			        <div class="text-center">
+						<button th:text="#{label.editquiz.submit.saveAll}" class="btn btn-primary" type="submit" ng-click="saveAll()">Update</button>
+						<button th:text="#{label.editquiz.submit.publish}" class="btn btn-primary" type="submit" ng-hide="quiz.isPublished" ng-click="publish()">Publish</button>
 			        </div>
 				</form>  
 				<!-- Remove this when footer is added -->

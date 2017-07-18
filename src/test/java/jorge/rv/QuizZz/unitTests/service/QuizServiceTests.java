@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import jorge.rv.quizzz.exceptions.ActionRefusedException;
 import jorge.rv.quizzz.exceptions.InvalidParametersException;
 import jorge.rv.quizzz.exceptions.QuizZzException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
@@ -26,8 +27,8 @@ import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.model.User;
-import jorge.rv.quizzz.model.support.AnswersBundle;
-import jorge.rv.quizzz.model.support.Results;
+import jorge.rv.quizzz.model.support.Response;
+import jorge.rv.quizzz.model.support.Result;
 import jorge.rv.quizzz.repository.QuizRepository;
 import jorge.rv.quizzz.service.QuestionService;
 import jorge.rv.quizzz.service.QuizService;
@@ -60,6 +61,10 @@ public class QuizServiceTests {
 		quiz.setId(1l);
 		quiz.setId(2l);
 		
+	}
+	
+	private static Pageable createDefaultPage() {
+		return new PageRequest(0, DEFAULT_PAGE_SIZE);
 	}
 	
 	// Save
@@ -206,76 +211,28 @@ public class QuizServiceTests {
 
 	@Test
 	public void testDeleteShouldDelete() throws QuizZzException {
-		when(quizRepository.findOne(quiz.getId())).thenReturn(quiz);
-		service.delete(quiz.getId());
+		service.delete(quiz);
 		
 		verify(quizRepository, times(1)).delete(quiz);
 	}
 	
-	@Test(expected = ResourceUnavailableException.class)
-	public void testDeleteUnexistentQuiz() throws QuizZzException {
-		when(quizRepository.findOne(quiz.getId())).thenReturn(null);
-		
-		service.delete(quiz.getId());
-	}
-	
 	@Test(expected = UnauthorizedActionException.class)
 	public void testDeleteFromWrongUser() throws QuizZzException {
-		when(quizRepository.findOne(quiz.getId())).thenReturn(quiz);
 		doThrow(new UnauthorizedActionException())
 			.when(quizRepository).delete(quiz);
 		
-		service.delete(quiz.getId());
-	}
-	
-	// FindQuestionsById
-	
-	@Test
-	public void testFindQuestionsByQuizWithAvailableQuizAndEmptyQuestions() throws ResourceUnavailableException {
-		when(questionService.findQuestionsByQuiz(quiz)).thenReturn(new ArrayList<>());
-		when(quizRepository.findOne(quiz.getId())).thenReturn(quiz);
-		
-		List<Question> questions = service.findQuestionsByQuiz(quiz.getId());
-		
-		assertEquals(0, questions.size());
-	}
-
-	@Test
-	public void testFindQuestionsByQuizWithAvailableQuizAndQuestionsAvailable() throws ResourceUnavailableException {
-		List<Question> mockedQuestions = new ArrayList<>();
-		mockedQuestions.add(new Question());
-		mockedQuestions.add(new Question());
-		mockedQuestions.add(new Question());
-		
-		when(questionService.findQuestionsByQuiz(quiz)).thenReturn(mockedQuestions);
-		when(quizRepository.findOne(quiz.getId())).thenReturn(quiz);
-		
-		List<Question> questions = service.findQuestionsByQuiz(quiz.getId());
-		
-		assertEquals(3, questions.size());
-	}
-	
-	@Test(expected = ResourceUnavailableException.class)
-	public void testFindQuestionsByQuizWithInvalidQuizID() throws ResourceUnavailableException {
-		when(quizRepository.findOne(quiz.getId())).thenReturn(null);
-		
-		service.findQuestionsByQuiz(quiz.getId());
-	}
-	
-	private static Pageable createDefaultPage() {
-		return new PageRequest(0, DEFAULT_PAGE_SIZE);
+		service.delete(quiz);
 	}
 	
 	@Test
 	public void testCheckAnswers() {
-		List<AnswersBundle> listBundles = generateAnswersBundle(DEFAULT_NUMBER_OF_QUESTIONS);
+		List<Response> listBundles = generateAnswersBundle(DEFAULT_NUMBER_OF_QUESTIONS);
 		
 		Quiz quiz = new Quiz();
 		List<Question> listQuestions = generateQuestions(DEFAULT_NUMBER_OF_QUESTIONS);
 		quiz.setQuestions(listQuestions);
-		when(quizRepository.findOne(1l)).thenReturn(quiz);
 		
-		when(questionService.checkAnswer(any(Question.class), any(Long.class)))
+		when(questionService.checkIsCorrectAnswer(any(Question.class), any(Long.class)))
 			.thenReturn(true)
 			.thenReturn(true)
 			.thenReturn(true)
@@ -288,44 +245,24 @@ public class QuizServiceTests {
 			.thenReturn(false);
 		
 		
-		Results results = service.checkAnswers(1l, listBundles);
+		Result results = service.checkAnswers(quiz, listBundles);
 		
 		
-		verify(questionService, times(DEFAULT_NUMBER_OF_QUESTIONS)).checkAnswer(any(Question.class), any(Long.class));
+		verify(questionService, times(DEFAULT_NUMBER_OF_QUESTIONS)).checkIsCorrectAnswer(any(Question.class), any(Long.class));
 		assertEquals(5, results.getCorrectQuestions());
 		assertEquals(DEFAULT_NUMBER_OF_QUESTIONS, results.getTotalQuestions());
 	}
 	
-	@Test(expected = ResourceUnavailableException.class)
-	public void testCheckAnswers_quizDoesntExsist_shouldForwardException() {
-		service.checkAnswers(1l, null);
-	}
-
-	@Test(expected = InvalidParametersException.class)
-	public void testCheckAnswers_answerIsMissing_shouldForwardException() {
-		List<AnswersBundle> list = generateAnswersBundle(1);
+	@Test
+	public void testCheckAnswers_withInvalidQuestions_shouldIgnoreThem() {
+		List<Response> listBundles = generateAnswersBundle(DEFAULT_NUMBER_OF_QUESTIONS);
 		
 		Quiz quiz = new Quiz();
-		List<Question> listQuestions = generateQuestions(1);
+		List<Question> listQuestions = generateQuestions(DEFAULT_NUMBER_OF_QUESTIONS);
+		listQuestions.get(0).setIsValid(false);
 		quiz.setQuestions(listQuestions);
 		
-		when(quizRepository.findOne(1l)).thenReturn(quiz);
-		when(questionService.checkAnswer(any(Question.class), any(Long.class))).thenThrow(new InvalidParametersException());
-		
-		
-		service.checkAnswers(1l, list);
-	}
-	
-	@Test(expected = InvalidParametersException.class)
-	public void testCheckAnswers_questionIsNotAnswered_shouldThrowException() {
-		List<AnswersBundle> listBundles = generateAnswersBundle(DEFAULT_NUMBER_OF_QUESTIONS);
-		
-		Quiz quiz = new Quiz();
-		List<Question> listQuestions = generateQuestions(DEFAULT_NUMBER_OF_QUESTIONS + 1);
-		quiz.setQuestions(listQuestions);
-		when(quizRepository.findOne(1l)).thenReturn(quiz);
-		
-		when(questionService.checkAnswer(any(Question.class), any(Long.class)))
+		when(questionService.checkIsCorrectAnswer(any(Question.class), any(Long.class)))
 			.thenReturn(true)
 			.thenReturn(true)
 			.thenReturn(true)
@@ -338,7 +275,53 @@ public class QuizServiceTests {
 			.thenReturn(false);
 		
 		
-		service.checkAnswers(1l, listBundles);
+		Result results = service.checkAnswers(quiz, listBundles);
+		
+		
+		verify(questionService, times(DEFAULT_NUMBER_OF_QUESTIONS-1)).checkIsCorrectAnswer(any(Question.class), any(Long.class));
+		assertEquals(5, results.getCorrectQuestions());
+		assertEquals(DEFAULT_NUMBER_OF_QUESTIONS-1, results.getTotalQuestions());
+	}
+	
+	@Test(expected = InvalidParametersException.class)
+	public void testCheckAnswers_questionIsNotAnswered_shouldThrowException() {
+		List<Response> listBundles = generateAnswersBundle(DEFAULT_NUMBER_OF_QUESTIONS);
+		
+		Quiz quiz = new Quiz();
+		List<Question> listQuestions = generateQuestions(DEFAULT_NUMBER_OF_QUESTIONS + 1);
+		quiz.setQuestions(listQuestions);
+		
+		when(questionService.checkIsCorrectAnswer(any(Question.class), any(Long.class)))
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(true)
+			.thenReturn(false)
+			.thenReturn(false)
+			.thenReturn(false)
+			.thenReturn(false)
+			.thenReturn(false);
+		
+		
+		service.checkAnswers(quiz, listBundles);
+	}
+	
+	@Test(expected = ActionRefusedException.class)
+	public void testPublishQuiz_withNoValidQuestions_shouldThrowException() {
+		when(questionService.countValidQuestionsInQuiz(quiz)).thenReturn(0);
+		
+		service.publishQuiz(quiz);
+	}
+	
+	@Test
+	public void testPublishQuiz_withOneValidQuestion_shouldPublish() {
+		when(questionService.countValidQuestionsInQuiz(quiz)).thenReturn(1);
+		
+		service.publishQuiz(quiz);
+		
+		verify(quizRepository, times(1)).save(quiz);
+		assertTrue(quiz.getIsPublished());
 	}
 	
 	private List<Question> generateQuestions(int numberOfQuestions) {
@@ -347,17 +330,18 @@ public class QuizServiceTests {
 		for (int i=0; i<numberOfQuestions; i++) {
 			Question question = new Question();
 			question.setId((long) i);
+			question.setIsValid(true);
 			list.add(question);
 		}
 		
 		return list;
 	}
 	
-	private List<AnswersBundle> generateAnswersBundle(int numberOfQuestions) {
-		List<AnswersBundle> list = new ArrayList<>();
+	private List<Response> generateAnswersBundle(int numberOfQuestions) {
+		List<Response> list = new ArrayList<>();
 		
 		for (int i=0; i<numberOfQuestions; i++) {
-			AnswersBundle answersBundle = new AnswersBundle();
+			Response answersBundle = new Response();
 			answersBundle.setQuestion((long) i);
 			answersBundle.setSelectedAnswer((long) i);
 			list.add(answersBundle);

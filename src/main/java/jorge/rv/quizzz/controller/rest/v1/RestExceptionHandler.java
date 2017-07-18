@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import jorge.rv.quizzz.controller.utils.ErrorInfo;
+import jorge.rv.quizzz.exceptions.ActionRefusedException;
 import jorge.rv.quizzz.exceptions.InvalidParametersException;
 import jorge.rv.quizzz.exceptions.InvalidTokenException;
 import jorge.rv.quizzz.exceptions.ModelVerificationException;
@@ -60,5 +61,12 @@ public class RestExceptionHandler {
 	@ResponseBody 
 	public ErrorInfo invalidParametersError(HttpServletRequest req, Exception ex) {
 		return new ErrorInfo(req.getRequestURL().toString(), ex, HttpStatus.BAD_REQUEST.value());
+	}
+	
+	@ExceptionHandler(ActionRefusedException.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	@ResponseBody 
+	public ErrorInfo actionRefusedError(HttpServletRequest req, Exception ex) {
+		return new ErrorInfo(req.getRequestURL().toString(), ex, HttpStatus.FORBIDDEN.value());
 	}
 }

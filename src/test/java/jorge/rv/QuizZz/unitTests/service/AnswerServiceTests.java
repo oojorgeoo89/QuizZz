@@ -1,8 +1,10 @@
 package jorge.rv.QuizZz.unitTests.service;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,6 +12,7 @@ import static org.mockito.Mockito.when;
 import org.junit.Before;
 import org.junit.Test;
 
+import jorge.rv.quizzz.exceptions.ActionRefusedException;
 import jorge.rv.quizzz.exceptions.QuizZzException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
@@ -19,15 +22,16 @@ import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.repository.AnswerRepository;
-import jorge.rv.quizzz.service.AnswerService;
 import jorge.rv.quizzz.service.AnswerServiceImpl;
+import jorge.rv.quizzz.service.QuestionService;
 
 public class AnswerServiceTests {
 
-	AnswerService service;
+	AnswerServiceImpl service;
 	
 	//Mocks
 	AnswerRepository answerRepository;
+	QuestionService questionService;
 	
 	User internalUser = new User();
 	AuthenticatedUser user = new AuthenticatedUser(internalUser);
@@ -38,8 +42,10 @@ public class AnswerServiceTests {
 	@Before
 	public void before() {
 		answerRepository = mock(AnswerRepository.class);
+		questionService = mock(QuestionService.class);
 		
 		service = new AnswerServiceImpl(answerRepository);
+		service.setQuestionService(questionService);
 		
 		internalUser.setId(1l);
 		quiz.setCreatedBy(user.getUser());
@@ -83,13 +89,15 @@ public class AnswerServiceTests {
 	@Test
 	public void testUpdateShouldUpdate() throws QuizZzException {
 		answer.setText("test");
-		
+		answer.setOrder(1);
 		when(answerRepository.findOne(answer.getId())).thenReturn(answer);
 		when(answerRepository.save(answer)).thenReturn(answer);
+		
 		Answer returned = service.update(answer);
 		
 		verify(answerRepository, times(1)).save(answer);
 		assertEquals(returned.getText(), answer.getText());
+		assertEquals(returned.getOrder(), (Integer) 1);
 	}
 	
 	@Test(expected = ResourceUnavailableException.class)
@@ -115,49 +123,31 @@ public class AnswerServiceTests {
 	// Delete
 
 	@Test
-	public void testDeleteShouldDelete() throws QuizZzException {
-		when(answerRepository.findOne(answer.getId())).thenReturn(answer);
-		service.delete(answer.getId());
+	public void testDelete_isNotCorrect_ShouldDelete() throws QuizZzException {
+		when(questionService.checkIsCorrectAnswer(question, answer.getId())).thenReturn(false);
+		
+		service.delete(answer);
 		
 		verify(answerRepository, times(1)).delete(answer);
 	}
 	
-	@Test(expected = ResourceUnavailableException.class)
-	public void testDeleteUnexistentAnswer() throws QuizZzException {
-		answer.setText("test");
+	@Test(expected = ActionRefusedException.class)
+	public void testDelete_isCorrect_ShouldNotDelete() throws QuizZzException {
+		when(questionService.checkIsCorrectAnswer(question, answer.getId())).thenReturn(true);
 		
-		when(answerRepository.findOne(answer.getId())).thenReturn(null);
+		service.delete(answer);
 		
-		service.delete(answer.getId());
+		verify(answerRepository, never()).delete(answer);
 	}
 	
 	@Test(expected = UnauthorizedActionException.class)
 	public void testDeleteFromWrongUser() throws QuizZzException {
 		answer.setText("test");
 		
-		when(answerRepository.findOne(answer.getId())).thenReturn(answer);
 		doThrow(new UnauthorizedActionException())
 			.when(answerRepository).delete(answer);
 		
-		service.delete(answer.getId());
-	}
-
-	@Test
-	public void testCheckAnswer_isCorrect() {
-		answer.setIscorrect(true);
-		
-		boolean isCorrect = service.checkAnswer(answer);
-		
-		assertTrue(isCorrect);
-	}
-	
-	@Test
-	public void testCheckAnswer_isInorrect() {
-		answer.setIscorrect(false);
-		
-		boolean isCorrect = service.checkAnswer(answer);
-		
-		assertFalse(isCorrect);
+		service.delete(answer);
 	}
 
 }

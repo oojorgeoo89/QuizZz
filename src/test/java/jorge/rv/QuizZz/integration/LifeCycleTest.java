@@ -136,11 +136,15 @@ public class LifeCycleTest {
 		
 		test_createAnswers();
 		
+		test_fetchValidQuestions();
+		
 		test_fetchAnswers();
 		
 		test_updateAnswers();
 		
 		test_playQuiz();
+		
+		test_quizPublishing();
 		
 		test_deleteAnswers();
 		
@@ -149,6 +153,61 @@ public class LifeCycleTest {
 		test_deleteQuizzes();
 		
 		test_deleteUsers();
+		
+	}
+
+	private void test_quizPublishing() throws Exception {
+		// Create a new Quiz with the first user
+		mvc.perform(post(QuizController.ROOT_MAPPING)
+				.param(QUIZ_NAME_KEY, QUIZ_NAME_1)
+				.param(QUIZ_DESCRIPTION_KEY, QUIZ_DESCRIPTION_1)
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isCreated());
+		
+		// Try to publish a Quiz without questions
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/3/publish")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isForbidden());
+		
+		// Create a question
+		mvc.perform(post(QuestionController.ROOT_MAPPING)
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_1)
+				.param(QUESTION_QUIZ_KEY, Integer.toString(3))
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isCreated());
+
+		// Try to publish a Quiz without valid questions
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/3/publish")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isForbidden());
+		
+		// Publish a Quiz once a question becomes valid
+		mvc.perform(post(AnswerController.ROOT_MAPPING)
+				.param(ANSWER_TEXT_KEY, ANSWER_TEXT_1)
+				.param(ANSWER_IS_CORRECT_KEY, ANSWER_IS_CORRECT_1)
+				.param(ANSWER_QUESTION_KEY, Integer.toString(5))
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isCreated());
+		
+		// Try to publish a Quiz without valid questions
+		mvc.perform(post(QuizController.ROOT_MAPPING + "/3/publish")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isOk());
+		
+	}
+
+	private void test_fetchValidQuestions() throws Exception {
+		// Get all questions from Quiz 1
+		mvc.perform(get(QuizController.ROOT_MAPPING + "/1/questions")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(3)));
+		
+		// Get valid questions from Quiz 1
+		mvc.perform(get(QuizController.ROOT_MAPPING + "/1/questions?onlyValid=true")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(2)));
 		
 	}
 
@@ -205,12 +264,17 @@ public class LifeCycleTest {
 
 	private void test_deleteAnswers() throws Exception {
 		// Deleting a Answer by an invalid user
-		mvc.perform(delete(AnswerController.ROOT_MAPPING + "/2")
+		mvc.perform(delete(AnswerController.ROOT_MAPPING + "/1")
 				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
 					.andExpect(status().isUnauthorized());
 		
-		// Deleting a Answer
+		// Deleting a correct Answer
 		mvc.perform(delete(AnswerController.ROOT_MAPPING + "/2")
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isForbidden());
+		
+		// Deleting a correct Answer
+		mvc.perform(delete(AnswerController.ROOT_MAPPING + "/1")
 				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
 					.andExpect(status().isOk());
 	}
@@ -230,10 +294,12 @@ public class LifeCycleTest {
 		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
 				.contentType(MediaType.APPLICATION_JSON).content(
 						"[ "
-						+ "{ \"question\": 1, \"selectedAnswer\": 1 },"
+						+ "{ \"question\": 1, \"selectedAnswer\": 2 },"
 						+ "{ \"question\": 2, \"selectedAnswer\": 55 }"
 						+ "]"))
-					.andExpect(status().isBadRequest());
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$." + TOTAL_QUESTIONS_TEXT, Matchers.equalTo(2)))
+					.andExpect(jsonPath("$." + CORRECT_QUESTIONS_TEXT, Matchers.equalTo(1)));;
 		
 		// Send empty results
 		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
@@ -249,7 +315,7 @@ public class LifeCycleTest {
 						+ "]"))
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$." + TOTAL_QUESTIONS_TEXT, Matchers.equalTo(2)))
-					.andExpect(jsonPath("$." + CORRECT_QUESTIONS_TEXT, Matchers.equalTo(1)));
+					.andExpect(jsonPath("$." + CORRECT_QUESTIONS_TEXT, Matchers.equalTo(2)));
 		
 		// Send results with an extra question - should be ignored
 		mvc.perform(post(QuizController.ROOT_MAPPING + "/1/submitAnswers")
@@ -261,7 +327,7 @@ public class LifeCycleTest {
 						+ "]"))
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$." + TOTAL_QUESTIONS_TEXT, Matchers.equalTo(2)))
-					.andExpect(jsonPath("$." + CORRECT_QUESTIONS_TEXT, Matchers.equalTo(1)));
+					.andExpect(jsonPath("$." + CORRECT_QUESTIONS_TEXT, Matchers.equalTo(2)));
 	}
 
 	private void test_updateAnswers() throws Exception {
@@ -412,6 +478,23 @@ public class LifeCycleTest {
 				.param(ANSWER_QUESTION_KEY, Integer.toString(3))
 				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
 					.andExpect(status().isCreated());
+		
+		// Get the correct Answer for the first question
+		mvc.perform(get(QuestionController.ROOT_MAPPING + "/1/correctAnswer")
+			.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id", Matchers.is(1)));
+		
+		// Set the correct Answer for the first question
+		mvc.perform(post(QuestionController.ROOT_MAPPING + "/1/correctAnswer?answer_id=2")
+			.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk());
+		
+		// Get the updated correct Answer for the first question
+		mvc.perform(get(QuestionController.ROOT_MAPPING + "/1/correctAnswer")
+			.with(httpBasic(EMAIL_1, PASSWORD_1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id", Matchers.is(2)));
 	}
 
 	private void test_listAnswers_noAnswers() throws Exception {
@@ -500,7 +583,7 @@ public class LifeCycleTest {
 		mvc.perform(get(QuizController.ROOT_MAPPING + "/1/questions")
 				.with(httpBasic(EMAIL_1, PASSWORD_1)))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(2)));
+				.andExpect(jsonPath("$", Matchers.hasSize(3)));
 		
 		// Get questions from Quiz 2
 		mvc.perform(get(QuizController.ROOT_MAPPING + "/2/questions")
@@ -557,6 +640,14 @@ public class LifeCycleTest {
 				.param(QUESTION_QUIZ_KEY, Integer.toString(2))
 				.with(httpBasic(EMAIL_2, PASSWORD_2)))	
 					.andExpect(status().isCreated());
+		
+		// Create a third question that won't have answers (invalid question).
+		mvc.perform(post(QuestionController.ROOT_MAPPING)
+				.param(QUESTION_TEXT_KEY, QUESTION_TEXT_2)
+				.param(QUESTION_QUIZ_KEY, Integer.toString(1))
+				.with(httpBasic(EMAIL_1, PASSWORD_1)))	
+					.andExpect(status().isCreated());
+		
 	}
 
 	private void test_listQuestions_noQuestions() throws Exception {
@@ -623,22 +714,22 @@ public class LifeCycleTest {
 				.andExpect(jsonPath("$.content", Matchers.hasSize(2)));
 		
 		// Search Quizzes
-		mvc.perform(get(QuizController.ROOT_MAPPING + "?filter=" + QUIZ_NAME_1.substring(2, QUIZ_NAME_1.length())))
+		mvc.perform(get(QuizController.ROOT_MAPPING + "/search?filter=" + QUIZ_NAME_1.substring(2, QUIZ_NAME_1.length())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(1)));
 		
 		// Search Quizzes
-		mvc.perform(get(QuizController.ROOT_MAPPING + "?filter="))
+		mvc.perform(get(QuizController.ROOT_MAPPING + "/search?filter="))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(2)));
 		
 		// Search Quizzes no results
-		mvc.perform(get(QuizController.ROOT_MAPPING + "?filter=" + "testString"))
+		mvc.perform(get(QuizController.ROOT_MAPPING + "/search?filter=" + "testString"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(0)));
 				
 		// Search Quizzes providing credentials
-		mvc.perform(get(QuizController.ROOT_MAPPING + "?filter=" + QUIZ_NAME_1.substring(2, QUIZ_NAME_1.length()))
+		mvc.perform(get(QuizController.ROOT_MAPPING + "/search?filter=" + QUIZ_NAME_1.substring(2, QUIZ_NAME_1.length()))
 				.with(httpBasic(EMAIL_1, PASSWORD_1)))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(1)));

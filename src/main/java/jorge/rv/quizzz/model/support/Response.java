@@ -1,6 +1,6 @@
 package jorge.rv.quizzz.model.support;
 
-public class AnswersBundle {
+public class Response {
 	private Long question;
 	private Long selectedAnswer;
 	

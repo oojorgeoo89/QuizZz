@@ -20,6 +20,7 @@ import jorge.rv.quizzz.controller.utils.RestVerifier;
 import jorge.rv.quizzz.model.Answer;
 import jorge.rv.quizzz.model.Question;
 import jorge.rv.quizzz.model.Quiz;
+import jorge.rv.quizzz.service.AnswerService;
 import jorge.rv.quizzz.service.QuestionService;
 import jorge.rv.quizzz.service.QuizService;
 
@@ -35,6 +36,9 @@ public class QuestionController {
 	@Autowired
 	private QuizService quizService;
 	
+	@Autowired
+	private AnswerService answerService;
+	
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -46,6 +50,7 @@ public class QuestionController {
 		
 		Quiz quiz = quizService.find(quiz_id);
 		question.setQuiz(quiz);
+		
 		return questionService.save(question);
 	}
 	
@@ -87,24 +92,24 @@ public class QuestionController {
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
 	public void delete(@PathVariable Long question_id) {
-		
-		questionService.delete(question_id);
+		Question question = questionService.find(question_id);
+		questionService.delete(question);
 	}
 	
 	@RequestMapping(value = "/{question_id}/answers", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)
 	public List<Answer> findAnswers(@PathVariable Long question_id) {
-		
-		return questionService.findAnswersByQuestion(question_id);
+		Question question = questionService.find(question_id);
+		return answerService.findAnswersByQuestion(question);
 	}
 
 	@RequestMapping(value = "/{question_id}/correctAnswer", method = RequestMethod.GET)
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
 	public Answer getCorrectAnswer(@PathVariable Long question_id) {
-		
-		return questionService.getCorrectAnswer(question_id);
+		Question question = questionService.find(question_id);
+		return questionService.getCorrectAnswer(question);
 	}
 	
 	@RequestMapping(value = "/{question_id}/correctAnswer", method = RequestMethod.POST)
@@ -112,7 +117,9 @@ public class QuestionController {
 	@ResponseStatus(HttpStatus.OK)
 	public void setCorrectAnswer(@PathVariable Long question_id, @RequestParam Long answer_id) {
 		
-		questionService.setCorrectAnswer(question_id, answer_id);
+		Question question = questionService.find(question_id);
+		Answer answer = answerService.find(answer_id);
+		questionService.setCorrectAnswer(question, answer);
 	}
 	
 }

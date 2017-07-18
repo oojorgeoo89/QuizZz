@@ -12,7 +12,7 @@
 		$scope.loadNextPage = function(quizName, quizDescription) {
 		
 			if ($scope.pagination.morePagesAvailable) {
-				$http.get("/api/quizzes?page=" + $scope.pagination.pageNumber)
+				$http.get("/api/quizzes?published=true&sort=id,desc&page=" + $scope.pagination.pageNumber)
 					.then(
 						function(response) {
 							if ($scope.quizzes == undefined) {

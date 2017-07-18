@@ -20,7 +20,7 @@
 			
 			$scope.playing = true;
 		
-			$http.get("/api/quizzes/" + $scope.quizId + "/questions")
+			$http.get("/api/quizzes/" + $scope.quizId + "/questions?onlyValid=true")
 				.then(
 					function(response) {
 						questions = questions.concat(response.data);

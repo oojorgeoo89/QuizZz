@@ -37,6 +37,8 @@ public class Quiz extends BaseModel implements UserOwned {
 	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable=false, updatable=false)
 	private Calendar createdDate;
+	
+	private Boolean isPublished = false;
 
 	public Calendar getCreatedDate() {
 		return createdDate;
@@ -75,7 +77,16 @@ public class Quiz extends BaseModel implements UserOwned {
 	}
 
 	@Override
+	@JsonIgnore
 	public User getUser() {
 		return getCreatedBy();
+	}
+
+	public Boolean getIsPublished() {
+		return isPublished;
+	}
+
+	public void setIsPublished(Boolean isPublished) {
+		this.isPublished = isPublished;
 	}
 }
