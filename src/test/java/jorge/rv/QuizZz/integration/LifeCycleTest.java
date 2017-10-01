@@ -98,7 +98,6 @@ public class LifeCycleTest {
 	}
 
 	@Test
-	@Sql({ "/dbInit.sql" })
 	public void testLifeCycle() throws Exception {
 
 		// Test full user Registration
