@@ -12,8 +12,8 @@ This is intended to be a learning project so please, feel free to fork this repo
 
 All the code required to run this project is available in this Git repository. You can either download it as a zip file from Github or run:
 
-```
-git clone https://github.com/oojorgeoo89/QuizZz.git
+```bash
+$ git clone https://github.com/oojorgeoo89/QuizZz.git
 ```
 
 ### Environment
@@ -42,13 +42,13 @@ If you don't wish to set up a MySQL database, QuizZz also comes with H2 support 
 
 In order to start FakeSMTP, download the jar file from [the official website](http://nilhcem.com/FakeSMTP/), run the following command as root and click on "Start server":
 
-```
+```bash
 $ sudo java -jar fakeSMTP-2.0.jar
 ```
 
 The reason to run as root is that SMTP's well known port is port 25, which is typically protected by the OS. However, if you are not comfortable giving FakeSMTP root access, you will want to start FakeSMTP on any port higher than 1024. You can use the -p option to start it on any port you want. Just remember to edit "mail.port" inside application.properties in order to point QuizZz to the right address.
 
-```
+```bash
 $ java -jar fakeSMTP-2.0.jar -p <port_number>
 ```
 
@@ -60,10 +60,8 @@ You can run the application either using maven on the command line or using your
 
 If you don't want to go through the process of using an IDE and just want to get the project running to explore it, navigate to the directory where you downloaded the source code and run:
 
-```
-mvn clean package
-cd target
-java -jar QuizZz-0.0.1-SNAPSHOT.war
+```bash
+$ mvn spring-boot:run
 ```
 
 If everything went well, you should be able to access the web app here: http://localhost:8080
@@ -99,6 +97,16 @@ Once the dependencies are downloaded and installed, we have two options to run:
    4. Hit the Play button.
 
 If everything went well, you should be able to access the web app here: http://localhost:8080
+
+#### Generating WAR file
+
+To generate the WAR file and start up the server, run:
+
+```bash
+$ mvn clean package
+$ cd target
+$ java -jar QuizZz-0.0.1-SNAPSHOT.war
+```
 
 ## Running the tests
 
