@@ -8,6 +8,8 @@ The application includes a simple but functional web frontend using AngularJS an
 
 This is intended to be a learning project so please, feel free to fork this repository and play around with the code!
 
+I am writing a [Wiki](https://github.com/oojorgeoo89/QuizZz/wiki) for more in-detail technical discussion on the project. The wiki is still being worked on, but there are a few sections available.
+
 ## Getting Started
 
 All the code required to run this project is available in this Git repository. You can either download it as a zip file from Github or run:
