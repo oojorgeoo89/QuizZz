@@ -13,6 +13,7 @@
 				<div id="navbar" class="collapse navbar-collapse">
 					<ul class="nav navbar-nav">
 						<li><a href="/">Home</a></li>
+						<li sec:authorize="isAuthenticated()"><a th:href="|/user/quizzes|">My QuizZes</a></li>
 						<li><a href="/createQuiz">Create Quiz</a></li>
 					</ul>
 

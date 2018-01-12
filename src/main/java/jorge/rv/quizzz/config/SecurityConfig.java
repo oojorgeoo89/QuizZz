@@ -41,9 +41,6 @@ public class SecurityConfig {
 	@Order(1)
 	public static class RestWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
-		@Autowired
-		PersistentTokenRepository persistentTokenRepository;
-
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
 			http.antMatcher("/api/**").authorizeRequests().anyRequest().permitAll().and().httpBasic().and().csrf()

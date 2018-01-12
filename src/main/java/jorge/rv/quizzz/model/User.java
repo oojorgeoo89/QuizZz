@@ -39,10 +39,12 @@ public class User extends BaseModel implements UserOwned, Serializable {
 	private String password;
 
 	@Column(name = "enabled")
+	@JsonIgnore
 	private boolean enabled;
 
 	@ManyToMany
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+	@JsonIgnore
 	private Set<Role> roles;
 
 	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)

@@ -101,8 +101,8 @@ public class LifeCycleTest {
 
 		// Test full user Registration
 		test_registerUser();
-		String resetPasswordUrl = MailHelper.waitForEmailAndExtractUrl(smtpServer);
-		test_completeRegistration(resetPasswordUrl);
+		String completeRegistrationUrl = MailHelper.waitForEmailAndExtractUrl(smtpServer);
+		test_completeRegistration(completeRegistrationUrl);
 
 		// Register another user that will be activated later in the test.
 		registerNewUser();
@@ -579,6 +579,11 @@ public class LifeCycleTest {
 		// List all quizzes from the first user
 		mvc.perform(get(UserController.ROOT_MAPPING + "/1/quizzes")).andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(1)));
+		
+		// List all quizzes from the first user as current user
+		mvc.perform(get(UserController.ROOT_MAPPING + "/myQuizzes").with(httpBasic(USERNAME_1, PASSWORD_1)))
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$.content", Matchers.hasSize(1)));
 
 		// List a quiz that doesn't exist
 		mvc.perform(get(QuizController.ROOT_MAPPING + "/55")).andExpect(status().isNotFound());
@@ -630,13 +635,16 @@ public class LifeCycleTest {
 				.param(PASSWORD_KEY, PASSWORD_2).param(EMAIL_KEY, EMAIL_2)).andExpect(status().isOk());
 	}
 
-	private void test_completeRegistration(String resetPasswordUrl) throws Exception {
+	private void test_completeRegistration(String completeRegistrationUrl) throws Exception {
 		// Reset password with the wrong token
-		mvc.perform(post(resetPasswordUrl + "33").param(PASSWORD_KEY, PASSWORD_1)).andExpect(status().isBadRequest());
+		mvc.perform(post(completeRegistrationUrl + "33").param(PASSWORD_KEY, PASSWORD_1)).andExpect(status().isBadRequest());
 
 		// Reset password
-		mvc.perform(post(resetPasswordUrl).param(PASSWORD_KEY, PASSWORD_1)).andExpect(status().isOk());
+		mvc.perform(post(completeRegistrationUrl).param(PASSWORD_KEY, PASSWORD_1)).andExpect(status().isOk());
 
+		// Test login attempt with full registration
+		mvc.perform(get("/api/users/login").with(httpBasic(EMAIL_1, PASSWORD_1))).andExpect(status().isOk());
+		
 		// Attempt to create a new user with the same parameters
 		mvc.perform(post(UserController.ROOT_MAPPING + "/registration").param(USERNAME_KEY, USERNAME_1)
 				.param(PASSWORD_KEY, PASSWORD_1).param(EMAIL_KEY, EMAIL_1)).andExpect(status().isConflict());
@@ -661,14 +669,20 @@ public class LifeCycleTest {
 		mvc.perform(get(continueRegistrationUrl)).andExpect(status().isOk());
 
 		// Invoke forgot password with an inexistent mail.
-		// Shouldn't fail, but it shouldn't send an email.
-		mvc.perform(post("/user/forgotPassword").param(EMAIL_KEY, "invalid@mail.com")).andExpect(status().isOk());
+		mvc.perform(post("/user/forgotPassword").param(EMAIL_KEY, "invalid@mail.com")).andExpect(status().isNotFound());
+		mvc.perform(post("/api/users/forgotPassword").param(EMAIL_KEY, "invalid@mail.com")).andExpect(status().isNotFound());
 
 		smtpServer.waitForIncomingEmail(1);
 		assertEquals(0, smtpServer.getReceivedMessages().length);
 
 		// Invoke forgot password with a valid email.
-		mvc.perform(post("/user/forgotPassword").param(EMAIL_KEY, EMAIL_1)).andExpect(status().isOk());
+		mvc.perform(post("/api/users/forgotPassword").param(EMAIL_KEY, EMAIL_1)).andExpect(status().isOk());
+		
+		// Test login attempt with invalid credentials
+		mvc.perform(get(UserController.ROOT_MAPPING + "/login").with(httpBasic(EMAIL_1, PASSWORD_2))).andExpect(status().isUnauthorized());
+		
+		// Test login attempt with partial registration
+		mvc.perform(get(UserController.ROOT_MAPPING + "/api/users/login").with(httpBasic(EMAIL_1, PASSWORD_1))).andExpect(status().isUnauthorized());
 	}
 
 }

@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.model.User;
 import jorge.rv.quizzz.service.UserService;
 import jorge.rv.quizzz.service.usermanagement.UserManagementService;
@@ -43,13 +42,8 @@ public class UserManagementController {
 	@RequestMapping(value = "/forgotPassword", method = RequestMethod.POST)
 	@PreAuthorize("permitAll")
 	public ModelAndView forgotPassword(String email) {
-		try {
-			User user = userService.findByEmail(email);
-			userManagementService.resendPassword(user);
-		} catch (ResourceUnavailableException e) {
-			// Ignoring Username not found to avoid showing whether the user
-			// exists or not
-		}
+		User user = userService.findByEmail(email);
+		userManagementService.resendPassword(user);
 
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("header", messageSource.getMessage("label.forgotpassword.success.header", null, null));

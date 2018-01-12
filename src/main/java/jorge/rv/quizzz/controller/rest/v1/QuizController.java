@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,8 @@ import jorge.rv.quizzz.service.QuizService;
 public class QuizController {
 
 	public static final String ROOT_MAPPING = "/api/quizzes";
+	
+	private static final Logger logger = LoggerFactory.getLogger(QuizController.class);
 
 	@Autowired
 	private QuizService quizService;
@@ -45,7 +49,7 @@ public class QuizController {
 	@ResponseStatus(HttpStatus.OK)
 	public Page<Quiz> findAll(Pageable pageable,
 			@RequestParam(required = false, defaultValue = "false") Boolean published) {
-
+		
 		if (published) {
 			return quizService.findAllPublished(pageable);
 		} else {
@@ -67,6 +71,8 @@ public class QuizController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public Quiz save(@AuthenticationPrincipal AuthenticatedUser user, @Valid Quiz quiz, BindingResult result) {
 
+		logger.debug("The Quiz " + quiz.getName() + " is going to be created");
+		
 		RestVerifier.verifyModelResult(result);
 
 		return quizService.save(quiz, user.getUser());
