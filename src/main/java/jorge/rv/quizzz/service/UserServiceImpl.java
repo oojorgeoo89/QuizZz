@@ -1,8 +1,5 @@
 package jorge.rv.quizzz.service;
 
-import java.util.Arrays;
-import java.util.HashSet;
-
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -16,10 +13,7 @@ import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.exceptions.UserAlreadyExistsException;
 import jorge.rv.quizzz.model.AuthenticatedUser;
-import jorge.rv.quizzz.model.Role;
-import jorge.rv.quizzz.model.Roles;
 import jorge.rv.quizzz.model.User;
-import jorge.rv.quizzz.repository.RoleRepository;
 import jorge.rv.quizzz.repository.UserRepository;
 
 @Service
@@ -28,15 +22,13 @@ public class UserServiceImpl implements UserService {
 
 	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 	private UserRepository userRepository;
-	private RoleRepository roleRepository;
 	private PasswordEncoder passwordEncoder;
 
 	@Autowired
-	public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
+	public UserServiceImpl(UserRepository userRepository,
 			PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
-		this.roleRepository = roleRepository;
 	}
 
 	@Override
@@ -48,8 +40,6 @@ public class UserServiceImpl implements UserService {
 
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
 		user.setEnabled(false);
-		Role userRole = roleRepository.findByRole(Roles.USER.toString());
-		user.setRoles(new HashSet<Role>(Arrays.asList(userRole)));
 
 		return userRepository.save(user);
 	}

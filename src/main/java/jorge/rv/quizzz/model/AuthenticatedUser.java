@@ -2,10 +2,8 @@ package jorge.rv.quizzz.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class AuthenticatedUser implements UserDetails {
@@ -24,13 +22,7 @@ public class AuthenticatedUser implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-
-		for (final Role role : user.getRoles()) {
-			authorities.add(new SimpleGrantedAuthority(role.getRole()));
-		}
-
-		return authorities;
+		return new ArrayList<>();
 	}
 
 	public Long getId() {

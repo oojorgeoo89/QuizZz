@@ -2,13 +2,9 @@ package jorge.rv.quizzz.model;
 
 import java.io.Serializable;
 import java.util.Calendar;
-import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 import org.hibernate.validator.constraints.Email;
@@ -41,11 +37,6 @@ public class User extends BaseModel implements UserOwned, Serializable {
 	@Column(name = "enabled")
 	@JsonIgnore
 	private boolean enabled;
-
-	@ManyToMany
-	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-	@JsonIgnore
-	private Set<Role> roles;
 
 	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
 	private Calendar createdDate;
@@ -84,14 +75,6 @@ public class User extends BaseModel implements UserOwned, Serializable {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
-	}
-
-	public Set<Role> getRoles() {
-		return roles;
-	}
-
-	public void setRoles(Set<Role> roles) {
-		this.roles = roles;
 	}
 
 	@Override

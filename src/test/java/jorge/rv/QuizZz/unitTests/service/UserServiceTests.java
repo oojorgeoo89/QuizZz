@@ -19,10 +19,7 @@ import jorge.rv.quizzz.exceptions.QuizZzException;
 import jorge.rv.quizzz.exceptions.ResourceUnavailableException;
 import jorge.rv.quizzz.exceptions.UnauthorizedActionException;
 import jorge.rv.quizzz.exceptions.UserAlreadyExistsException;
-import jorge.rv.quizzz.model.Role;
-import jorge.rv.quizzz.model.Roles;
 import jorge.rv.quizzz.model.User;
-import jorge.rv.quizzz.repository.RoleRepository;
 import jorge.rv.quizzz.repository.UserRepository;
 import jorge.rv.quizzz.service.UserService;
 import jorge.rv.quizzz.service.UserServiceImpl;
@@ -33,7 +30,6 @@ public class UserServiceTests {
 
 	// Mocks
 	UserRepository userRepository;
-	RoleRepository roleRepository;
 	PasswordEncoder passwordEncoder;
 
 	User user = new User();
@@ -41,10 +37,9 @@ public class UserServiceTests {
 	@Before
 	public void before() {
 		userRepository = mock(UserRepository.class);
-		roleRepository = mock(RoleRepository.class);
 		passwordEncoder = mock(PasswordEncoder.class);
 
-		service = new UserServiceImpl(userRepository, roleRepository, passwordEncoder);
+		service = new UserServiceImpl(userRepository, passwordEncoder);
 
 		user.setEmail("a@a.com");
 		user.setPassword("Password");
@@ -53,7 +48,6 @@ public class UserServiceTests {
 	@Test
 	public void saveNewUserShouldSucceed() throws UserAlreadyExistsException {
 		when(userRepository.findByEmail(user.getEmail())).thenReturn(null);
-		when(roleRepository.findByRole(Roles.USER.toString())).thenReturn(new Role());
 		when(userRepository.save(user)).thenReturn(user);
 
 		User returned = service.saveUser(user);
@@ -65,7 +59,6 @@ public class UserServiceTests {
 	@Test(expected = UserAlreadyExistsException.class)
 	public void saveNewUserMailExistsShouldFail() throws UserAlreadyExistsException {
 		when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
-		when(roleRepository.findByRole(Roles.USER.toString())).thenReturn(new Role());
 		when(userRepository.save(user)).thenReturn(user);
 
 		service.saveUser(user);
