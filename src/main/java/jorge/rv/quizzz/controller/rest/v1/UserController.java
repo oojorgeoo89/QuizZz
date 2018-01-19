@@ -109,6 +109,14 @@ public class UserController {
 		return authenticatedUser.getUser();
 	}
 	
+	@RequestMapping(value = "/logoutDummy")
+	@PreAuthorize("permitAll()")
+	@ResponseStatus(HttpStatus.OK)
+	public void logout() {
+		// Dummy endpoint to point Spring Security to
+		logger.debug("Logged out");
+	}
+	
 	@RequestMapping(value = "/forgotPassword")
 	@PreAuthorize("permitAll")
 	@ResponseStatus(HttpStatus.OK)

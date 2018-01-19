@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
+import jorge.rv.quizzz.controller.rest.v1.UserController;
+
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -43,8 +45,21 @@ public class SecurityConfig {
 
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
-			http.antMatcher("/api/**").authorizeRequests().anyRequest().permitAll().and().httpBasic().and().csrf()
-					.disable();
+			http
+				.antMatcher("/api/**")
+					.authorizeRequests()
+					.anyRequest()
+						.permitAll()
+				.and()
+					.httpBasic()
+				.and()
+					.csrf()
+						.disable()
+					.logout()
+						.logoutUrl(UserController.ROOT_MAPPING + "/logout")
+						.logoutSuccessUrl(UserController.ROOT_MAPPING + "/logoutDummy")
+						.deleteCookies("JSESSIONID")
+						.invalidateHttpSession(true);
 		}
 	}
 
@@ -56,9 +71,20 @@ public class SecurityConfig {
 
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
-			http.formLogin().loginPage("/user/login").defaultSuccessUrl("/", true).and().rememberMe()
-					.tokenRepository(persistentTokenRepository).and().csrf().disable().logout().logoutSuccessUrl("/")
-					.deleteCookies("JSESSIONID").invalidateHttpSession(true);
+			http
+				.formLogin()
+					.loginPage("/user/login")
+					.defaultSuccessUrl("/", true)
+				.and()
+					.rememberMe()
+					.tokenRepository(persistentTokenRepository)
+				.and()
+					.csrf()
+						.disable()
+					.logout()
+						.logoutSuccessUrl("/")
+						.deleteCookies("JSESSIONID")
+						.invalidateHttpSession(true);
 		}
 	}
 
