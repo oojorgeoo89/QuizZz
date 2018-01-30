@@ -31,7 +31,7 @@ public class Question extends BaseModel implements UserOwned {
 	@Column(name = "q_order")
 	private Integer order;
 
-	@JsonIgnore
+	//@JsonIgnore
 	@OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Answer> answers;
 
