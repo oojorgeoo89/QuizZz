@@ -74,6 +74,7 @@ public class SecurityConfig {
 			http
 				.formLogin()
 					.loginPage("/user/login")
+					.failureUrl("/user/login-error")
 					.defaultSuccessUrl("/", true)
 				.and()
 					.rememberMe()

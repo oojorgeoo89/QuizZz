@@ -4,6 +4,9 @@
 
 	var editCtrl = function($scope, $http) {
 		
+		$scope.isQuizSaving = false;
+		$scope.isPublishing = false;
+		
 		$scope.refreshQuizData = function() {
 			if ($scope.quizId == 0)
 				return;
@@ -47,6 +50,7 @@
 						console.log(response.data);
 					}, 
 					function(reason) {
+						alert(reason.data);
 						console.log(reason.data);
 					}
 			);
@@ -77,6 +81,7 @@
 		$scope.saveAll = function() {
 			var url = "/api/questions/updateAll";
 			
+			$scope.isQuizSaving = true;
 			$scope.saveQuiz();
 
 			$http.post(url + "?quiz_id=" + $scope.quizId,
@@ -84,9 +89,12 @@
 			.then(
 					function(response) {
 						console.log(response.data);
+						$scope.isQuizSaving = false;
 					}, 
 					function(reason) {
+						alert(reason.data);
 						console.log(reason.data);
+						$scope.isQuizSaving = false;
 					}
 			);
 		}
@@ -94,6 +102,7 @@
 		$scope.publish = function() {
 			var url = "/api/quizzes/" + $scope.quizId + "/publish";
 			
+			$scope.isPublishing = true;
 			$scope.saveAll();
 
 			$http.post(url)
@@ -101,10 +110,12 @@
 					function(response) {
 						console.log(response.data);
 						$scope.quiz.isPublished=false;
+						$scope.isPublishing = false;
 					}, 
 					function(reason) {
 						console.log(reason.data);
 						alert("Please, set up at least one question with answers");
+						$scope.isPublishing = false;
 					}
 			);
 		}

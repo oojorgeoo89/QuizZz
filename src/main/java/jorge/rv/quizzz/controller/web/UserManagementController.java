@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,13 @@ public class UserManagementController {
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
 	@PreAuthorize("permitAll")
 	public String login(@ModelAttribute User user) {
+		return "login";
+	}
+	
+	@RequestMapping(value = "/login-error", method = RequestMethod.GET)
+	@PreAuthorize("permitAll")
+	public String loginError(@ModelAttribute User user, Model model) {
+		model.addAttribute("loginError", true);
 		return "login";
 	}
 

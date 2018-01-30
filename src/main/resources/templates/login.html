@@ -18,6 +18,8 @@
 		        <input th:placeholder="#{label.signin.email}" name="username" class="form-control" required="true" autofocus="true"></input>
 		        <input th:placeholder="#{label.signin.password}" type="password" name="password" class="form-control" required="true"></input>
 		        
+		        <p th:if="${loginError}" th:text="#{label.signin.errorrmessage}" class="error">Wrong user or password</p>
+		        
 		        <div class="checkbox">
 		          <label>
 		            <input th:text="#{label.signin.rememberme}" type="checkbox" name="remember-me"> Remember me </input>

@@ -3,6 +3,19 @@
 <head  th:replace="fragments/head :: headerFragment">
 </head>
 <body>
+	<script>
+		function validateRegistrationForm() {
+			password = document.forms["registrationForm"]["password"].value;
+			repeatPassword = document.forms["registrationForm"]["repeatPassword"].value;
+			
+			if (password != repeatPassword) {
+				alert("Passwords don't match!");
+				return false;
+			}
+			
+			return true;
+		}
+	</script>
 
 	<div th:replace="fragments/header :: header">...</div>
 	
@@ -13,7 +26,7 @@
 		<div class="col-sm-4">
 			<h1 th:text="#{label.registration.title}" class="form-signin">form</h1>
 			<br/>
-			<form action="/user/registration" th:object="${user}" method="POST" enctype="utf8">
+			<form action="/user/registration" th:object="${user}" method="POST" enctype="utf8"  name="registrationForm" onsubmit="return validateRegistrationForm();">
 			    <div>
 			    	<p th:each="error: ${#fields.errors('username')}" th:text="${error}">Validation error</p>
 			        <label th:text="#{label.user.username}" >username</label><br/>
@@ -31,7 +44,7 @@
 			    </div>
 			    <div>
 			        <label th:text="#{label.user.confirmPassword}">confirm</label>
-			        <input type="password" class="form-control" required="true" />
+			        <input name="repeatPassword" type="password" class="form-control" required="true" />
 			    </div>
 			    <br/>
 			    <button th:text="#{label.registration.submit}" type="submit" class="btn btn-lg btn-primary btn-block">submit</button>
